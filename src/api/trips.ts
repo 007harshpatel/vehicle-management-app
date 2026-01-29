@@ -1,24 +1,38 @@
 import client from './client';
 
+export interface TripDetail {
+    id?: number;
+    momentDate: string;
+    vehicleId: number;
+    vehicleNumber: string;
+    containerNo: string;
+
+    fromLocation: string;
+    viaLocation?: string;
+    toLocation: string;
+    weight: number;
+    frs: number;
+    loLo: number;
+    detention: number;
+    amount: number;
+}
+
 export interface Trip {
     id: number;
-    vehicleId: number;
     driverId: number;
-    fromLocation: string;
-    toLocation: string;
+    driverName: string;
+    supplyTo: string;
+    billNo: string;
     startDatetime: string;
-    distance: number;
-    loadType: string;
-    weight: number;
-    fuelLiters: number;
-    fuelPrice: number;
-    tollCharges: number;
-    otherCharges: number;
-    billAmount: number;
-    advanceGiven: number;
-    endDatetime?: string;
+    refNo: string;
+    panNo: string;
+    docNo: string;
+    subTotal: number;
+    lessAdvance: number;
+    totalAmount: number;
     notes?: string;
     tripStatus?: string;
+    details: TripDetail[];
 }
 
 export const getTrips = async () => {
@@ -26,12 +40,20 @@ export const getTrips = async () => {
     return response.data;
 };
 
-export const createTrip = async (tripData: Omit<Trip, 'id'>) => {
-    const response = await client.post('/trips', tripData);
+export const createTrip = async (tripData: FormData | any) => {
+    const response = await client.post('/trips', tripData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };
 
-export const updateTrip = async (id: number, tripData: Partial<Omit<Trip, 'id'>>) => {
-    const response = await client.patch(`/trips/${id}`, tripData);
+export const updateTrip = async (id: number, tripData: FormData | any) => {
+    const response = await client.patch(`/trips/${id}`, tripData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };

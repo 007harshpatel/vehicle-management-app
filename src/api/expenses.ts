@@ -20,12 +20,20 @@ export const getExpenses = async () => {
     return response.data;
 };
 
-export const createExpense = async (expenseData: Omit<Expense, 'id'>) => {
-    const response = await client.post('/expenses', expenseData);
+export const createExpense = async (expenseData: FormData | any) => {
+    const response = await client.post('/expenses', expenseData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };
 
-export const updateExpense = async (id: number, expenseData: Partial<Omit<Expense, 'id'>>) => {
-    const response = await client.patch(`/expenses/${id}`, expenseData);
+export const updateExpense = async (id: number, expenseData: FormData | any) => {
+    const response = await client.patch(`/expenses/${id}`, expenseData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };

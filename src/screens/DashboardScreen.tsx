@@ -37,7 +37,6 @@ export const DashboardScreen = () => {
         <ScreenContainer>
             <View style={styles.header}>
                 <Text style={styles.title}>Dashboard</Text>
-                <Text style={styles.subtitle}>Welcome back</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>

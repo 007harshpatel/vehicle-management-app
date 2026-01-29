@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Alert, ScrollView, View, Text } from 'react-native';
+import { StyleSheet, Alert, ScrollView, View, Text, TouchableOpacity, Modal, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { Camera, Image as ImageIcon, FileText, X } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { DatePickerInput } from '../../components/DatePickerInput';
@@ -26,6 +29,10 @@ export const CreateExpenseScreen = ({ route }: any) => {
     const [vehicleId, setVehicleId] = useState('');
     const [driverId, setDriverId] = useState('');
     const [notes, setNotes] = useState('');
+
+    // File Upload State
+    const [billFile, setBillFile] = useState<any>(null);
+    const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
     useEffect(() => {
         if (editingExpense) {
@@ -62,6 +69,70 @@ export const CreateExpenseScreen = ({ route }: any) => {
         }
     };
 
+    const handleUploadPress = () => {
+        setUploadModalVisible(true);
+    };
+
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            const asset = result.assets[0];
+            setBillFile({
+                uri: asset.uri,
+                type: asset.mimeType || 'image/jpeg',
+                name: asset.fileName || 'bill.jpg',
+            });
+            setUploadModalVisible(false);
+        }
+    };
+
+    const pickDocument = async () => {
+        const result = await DocumentPicker.getDocumentAsync({
+            type: 'application/pdf',
+            copyToCacheDirectory: true,
+        });
+
+        if (!result.canceled) {
+            const asset = result.assets[0];
+            setBillFile({
+                uri: asset.uri,
+                type: asset.mimeType || 'application/pdf',
+                name: asset.name || 'bill.pdf',
+            });
+            setUploadModalVisible(false);
+        }
+    };
+
+    const takePhoto = async () => {
+        const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+        if (permissionResult.granted === false) {
+            Alert.alert("Permission to access camera is required!");
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.8,
+        });
+
+        if (!result.canceled) {
+            const asset = result.assets[0];
+            setBillFile({
+                uri: asset.uri,
+                type: asset.mimeType || 'image/jpeg',
+                name: asset.fileName || 'camera_capture.jpg',
+            });
+            setUploadModalVisible(false);
+        }
+    }
+
     const handleSubmit = async () => {
         if (!date || !category || !amount || !paymentMode) {
             Alert.alert('Error', 'Date, Category, Amount and Payment Mode are required');
@@ -69,30 +140,32 @@ export const CreateExpenseScreen = ({ route }: any) => {
         }
 
         setLoading(true);
+
+        const formData = new FormData();
+        formData.append('date', date);
+        formData.append('category', category);
+        formData.append('amount', amount);
+        formData.append('paymentMode', paymentMode);
+        if (vehicleId) formData.append('vehicleId', vehicleId);
+        if (driverId) formData.append('driverId', driverId);
+        formData.append('notes', notes);
+
+        if (billFile) {
+            formData.append('billFile', {
+                uri: billFile.uri,
+                name: billFile.name,
+                type: billFile.type,
+            } as any);
+        }
+
         try {
             if (editingExpense) {
-                await updateExpense(editingExpense.id, {
-                    date,
-                    category,
-                    amount: Number(amount),
-                    paymentMode,
-                    vehicleId: vehicleId ? Number(vehicleId) : undefined,
-                    driverId: driverId ? Number(driverId) : undefined,
-                    notes,
-                });
+                await updateExpense(editingExpense.id, formData);
                 Alert.alert('Success', 'Expense updated successfully', [
                     { text: 'OK', onPress: () => navigation.goBack() }
                 ]);
             } else {
-                await createExpense({
-                    date,
-                    category,
-                    amount: Number(amount),
-                    paymentMode,
-                    vehicleId: vehicleId ? Number(vehicleId) : undefined,
-                    driverId: driverId ? Number(driverId) : undefined,
-                    notes,
-                });
+                await createExpense(formData);
                 Alert.alert('Success', 'Expense created successfully', [
                     { text: 'OK', onPress: () => navigation.goBack() }
                 ]);
@@ -184,6 +257,20 @@ export const CreateExpenseScreen = ({ route }: any) => {
                     </View>
                 </View>
 
+                <Text style={styles.label}>Bill File</Text>
+                <TouchableOpacity onPress={handleUploadPress} style={styles.uploadButton}>
+                    <Text style={styles.uploadButtonText}>{billFile ? "Change Bill File" : "Upload Bill"}</Text>
+                </TouchableOpacity>
+
+                {billFile && (
+                    <View style={styles.filePreview}>
+                        <Text style={styles.fileName}>Selected: {billFile.name}</Text>
+                        {billFile.type.includes('image') && (
+                            <Image source={{ uri: billFile.uri }} style={styles.previewImage} />
+                        )}
+                    </View>
+                )}
+
                 <Input label="Notes" value={notes} onChangeText={setNotes} />
 
                 <Button
@@ -192,6 +279,49 @@ export const CreateExpenseScreen = ({ route }: any) => {
                     loading={loading}
                     style={styles.button}
                 />
+
+                {/* Upload Modal - Custom Bottom Sheet Style */}
+                <Modal
+                    visible={uploadModalVisible}
+                    transparent={true}
+                    animationType="slide"
+                    onRequestClose={() => setUploadModalVisible(false)}
+                >
+                    <View style={styles.uploadModalOverlay}>
+                        <View style={styles.uploadModalContainer}>
+                            <View style={styles.uploadModalHeader}>
+                                <Text style={styles.uploadModalTitle}>Upload Bill</Text>
+                                <TouchableOpacity onPress={() => setUploadModalVisible(false)}>
+                                    <X color={Colors.text} size={24} />
+                                </TouchableOpacity>
+                            </View>
+
+                            <View style={styles.uploadOptions}>
+                                <TouchableOpacity style={styles.uploadOption} onPress={takePhoto}>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#e3f2fd' }]}>
+                                        <Camera color="#2196F3" size={28} />
+                                    </View>
+                                    <Text style={styles.uploadOptionText}>Camera</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity style={styles.uploadOption} onPress={pickImage}>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#e8f5e9' }]}>
+                                        <ImageIcon color="#4caf50" size={28} />
+                                    </View>
+                                    <Text style={styles.uploadOptionText}>Gallery</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity style={styles.uploadOption} onPress={pickDocument}>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#fff3e0' }]}>
+                                        <FileText color="#ff9800" size={28} />
+                                    </View>
+                                    <Text style={styles.uploadOptionText}>Document</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
             </ScrollView>
         </ScreenContainer>
     );
@@ -226,4 +356,41 @@ const styles = StyleSheet.create({
         width: '100%',
         color: Colors.text,
     },
+    uploadButton: {
+        padding: 12,
+        backgroundColor: Colors.background,
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        borderRadius: BorderRadius.sm,
+        alignItems: 'center',
+        marginBottom: Spacing.md
+    },
+    uploadButtonText: {
+        color: Colors.primary,
+        fontWeight: '600',
+        fontSize: 16
+    },
+    filePreview: {
+        marginBottom: Spacing.md,
+        alignItems: 'center'
+    },
+    previewImage: {
+        width: 100,
+        height: 100,
+        borderRadius: BorderRadius.sm,
+        marginTop: 5
+    },
+    fileName: {
+        fontSize: 12,
+        color: Colors.textLight
+    },
+    // Upload Modal Styles
+    uploadModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+    uploadModalContainer: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, minHeight: 250 },
+    uploadModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
+    uploadModalTitle: { fontSize: 20, fontWeight: 'bold', color: Colors.text },
+    uploadOptions: { flexDirection: 'row', justifyContent: 'space-around' },
+    uploadOption: { alignItems: 'center' },
+    iconContainer: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
+    uploadOptionText: { fontSize: 14, color: Colors.text, fontWeight: '500' }
 });

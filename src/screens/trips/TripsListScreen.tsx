@@ -39,14 +39,13 @@ export const TripsListScreen = () => {
                 onPress={() => navigation.navigate('CreateTrip', { trip: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#9C27B0' + '20' }]}>
-                    <Navigation size={24} color="#9C27B0" />
+                    <Receipt size={24} color="#9C27B0" />
                 </View>
                 <View style={styles.headerText}>
-                    <View style={styles.routeRow}>
-                        <Text style={styles.route}>{item.fromLocation}</Text>
-                        <Text style={styles.arrow}>→</Text>
-                        <Text style={styles.route}>{item.toLocation}</Text>
-                    </View>
+                    <Text style={styles.route}>{item.billNo || 'No Bill No'}</Text>
+                    <Text style={styles.subtitle}>{item.driverName || 'Unknown Driver'} | {item.supplyTo || 'Unknown Party'}</Text>
+                </View>
+                <View>
                     <Text style={[styles.subtitle, { color: item.tripStatus === 'Completed' ? Colors.success : Colors.textLight }]}>
                         {item.tripStatus || 'In Progress'}
                     </Text>
@@ -58,11 +57,13 @@ export const TripsListScreen = () => {
             <View style={styles.details}>
                 <View style={styles.row}>
                     <Calendar size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
-                    <Text style={styles.detail}>{item.startDatetime.split('T')[0]}</Text>
+                    <Text style={styles.detail}>{item.startDatetime ? item.startDatetime.split('T')[0] : ''}</Text>
                 </View>
                 <View style={styles.row}>
-                    <Receipt size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
-                    <Text style={styles.detail}>₹{item.billAmount}</Text>
+                    <Text style={[styles.detail, { fontWeight: 'bold' }]}>Total: ₹{item.totalAmount}</Text>
+                </View>
+                <View style={styles.row}>
+                    <Text style={styles.detail}>{item.details ? `${item.details.length} Details` : '0 Details'}</Text>
                 </View>
             </View>
         </Card>

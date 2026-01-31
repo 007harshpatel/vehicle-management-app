@@ -5,7 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { useAuth } from '../context/AuthContext';
 import { LoginScreen } from '../screens/auth/LoginScreen';
-import { DashboardScreen } from '../screens/DashboardScreen';
+import { TabNavigator } from './TabNavigator';
 
 import { UsersListScreen } from '../screens/users/UsersListScreen';
 import { CreateUserScreen } from '../screens/users/CreateUserScreen';
@@ -45,7 +45,7 @@ export const RootNavigator = () => {
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {isAuthenticated ? (
                     <>
-                        <Stack.Screen name="Dashboard" component={DashboardScreen} />
+                        <Stack.Screen name="MainTabs" component={TabNavigator} />
 
                         <Stack.Screen name="UsersList" component={UsersListScreen} />
                         <Stack.Screen name="CreateUser" component={CreateUserScreen} />

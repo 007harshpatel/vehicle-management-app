@@ -6,11 +6,13 @@ import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { DatePickerInput } from '../../components/DatePickerInput';
 import { Button } from '../../components/Button';
-import { createLedgerEntry, updateLedgerEntry, getParties, Party, LedgerEntry } from '../../api/ledger';
+import { getParties, createLedgerEntry, updateLedgerEntry, LedgerEntry, Party } from '../../api/ledger';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateLedgerEntryScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingEntry = route.params?.entry as LedgerEntry | undefined;
     const [loading, setLoading] = useState(false);
 
@@ -41,51 +43,48 @@ export const CreateLedgerEntryScreen = ({ route }: any) => {
             setParties(data);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to load parties');
+            showToast('Failed to load parties', 'error');
         }
     };
 
     const handleSubmit = async () => {
         if (!partyId || !entryType || !amount || !date) {
-            Alert.alert('Error', 'Party, Type, Amount and Date are required');
+            showToast('Party, Type, Amount and Date are required', 'warning');
             return;
         }
 
         setLoading(true);
         try {
+            const data = {
+                partyId: Number(partyId),
+                entryType,
+                amount: Number(amount),
+                date,
+                notes,
+            };
+
             if (editingEntry) {
-                await updateLedgerEntry(editingEntry.id, {
-                    partyId: Number(partyId),
-                    entryType,
-                    amount: Number(amount),
-                    date,
-                    notes,
-                });
-                Alert.alert('Success', 'Entry updated successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await updateLedgerEntry(editingEntry.id, data);
+                showToast('Entry updated successfully', 'success');
             } else {
-                await createLedgerEntry({
-                    partyId: Number(partyId),
-                    entryType,
-                    amount: Number(amount),
-                    date,
-                    notes,
-                });
-                Alert.alert('Success', 'Entry recorded successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await createLedgerEntry(data);
+                showToast('Entry recorded successfully', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create entry');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create entry');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingEntry ? "Edit Entry" : "Add Entry"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Party *</Text>

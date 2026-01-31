@@ -5,24 +5,30 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const LoginScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
+    const { showToast } = useToast();
 
     const handleLogin = async () => {
         if (!email || !password) {
-            Alert.alert('Error', 'Please enter both email and password');
+            showToast('Please enter both email and password', 'warning');
             return;
         }
 
         setLoading(true);
         try {
             await login(email, password);
-        } catch (error) {
-            Alert.alert('Login Failed', 'Invalid credentials or server error');
+        } catch (error: any) {
+            if (error.response && error.response.status === 401) {
+                showToast('Invalid credentials', 'error');
+            } else {
+                showToast('Login Failed: Server error', 'error');
+            }
         } finally {
             setLoading(false);
         }

@@ -6,10 +6,12 @@ import { Input } from '../../components/Input';
 import { DatePickerInput } from '../../components/DatePickerInput';
 import { Button } from '../../components/Button';
 import { createDriver, updateDriver, Driver } from '../../api/drivers';
-import { Spacing } from '../../constants/theme';
+import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateDriverScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingDriver = route.params?.driver as Driver | undefined;
     const [loading, setLoading] = useState(false);
 
@@ -37,51 +39,45 @@ export const CreateDriverScreen = ({ route }: any) => {
 
     const handleSubmit = async () => {
         if (!name || !mobile || !licenseNumber) {
-            Alert.alert('Error', 'Name, Mobile and License Number are required');
+            showToast('Name, Mobile and License Number are required', 'warning');
             return;
         }
 
         setLoading(true);
+        const data = {
+            name,
+            mobile,
+            licenseNumber,
+            licenseExpiry: licenseExpiry || undefined,
+            aadhaar: aadhaar || undefined,
+            salaryType: salaryType || undefined,
+            salaryAmount: salaryAmount ? Number(salaryAmount) : undefined,
+            joiningDate: joiningDate || undefined,
+        };
+
         try {
             if (editingDriver) {
-                await updateDriver(editingDriver.id, {
-                    name,
-                    mobile,
-                    licenseNumber,
-                    licenseExpiry: licenseExpiry || undefined,
-                    aadhaar: aadhaar || undefined,
-                    salaryType: salaryType || undefined,
-                    salaryAmount: salaryAmount ? Number(salaryAmount) : undefined,
-                    joiningDate: joiningDate || undefined,
-                });
-                Alert.alert('Success', 'Driver updated successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await updateDriver(editingDriver.id, data);
+                showToast('Driver updated successfully', 'success');
             } else {
-                await createDriver({
-                    name,
-                    mobile,
-                    licenseNumber,
-                    licenseExpiry: licenseExpiry || undefined,
-                    aadhaar: aadhaar || undefined,
-                    salaryType: salaryType || undefined,
-                    salaryAmount: salaryAmount ? Number(salaryAmount) : undefined,
-                    joiningDate: joiningDate || undefined,
-                });
-                Alert.alert('Success', 'Driver created successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await createDriver(data);
+                showToast('Driver created successfully', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create driver');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create driver');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingDriver ? "Edit Driver" : "Add Driver"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <Input label="Name *" value={name} onChangeText={setName} />
                 <Input label="Mobile *" value={mobile} onChangeText={setMobile} keyboardType="phone-pad" />

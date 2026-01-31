@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getParties, Party } from '../../api/ledger';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, BookOpen, Phone, Briefcase, List } from 'lucide-react-native';
 
 export const LedgerPartiesScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [parties, setParties] = useState<Party[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchParties = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const LedgerPartiesScreen = () => {
             setParties(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch parties');
+            showToast('Failed to fetch parties', 'error');
         } finally {
             setLoading(false);
         }

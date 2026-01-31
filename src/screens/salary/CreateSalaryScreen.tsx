@@ -9,9 +9,11 @@ import { Button } from '../../components/Button';
 import { createSalary, updateSalary, Salary } from '../../api/salary';
 import { getDrivers, Driver } from '../../api/drivers';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateSalaryScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingSalary = route.params?.salary as Salary | undefined;
     const [loading, setLoading] = useState(false);
     const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -48,53 +50,49 @@ export const CreateSalaryScreen = ({ route }: any) => {
             }
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch drivers');
+            showToast('Failed to fetch drivers', 'error');
         }
     };
 
     const handleSubmit = async () => {
-        if (!driverId || !amount || !salaryDate || !salaryType) {
-            Alert.alert('Error', 'Driver, Amount, Type and Date are required');
+        if (!driverId || !amount || !salaryType || !salaryDate) {
+            showToast('Driver, Amount, Type and Date are required', 'warning');
             return;
         }
 
         setLoading(true);
         try {
+            const data = {
+                driverId: Number(driverId),
+                salaryType,
+                amount: Number(amount),
+                salaryDate,
+                advance: advance ? Number(advance) : undefined,
+                deduction: deduction ? Number(deduction) : undefined,
+            };
+
             if (editingSalary) {
-                await updateSalary(editingSalary.id, {
-                    driverId: Number(driverId),
-                    salaryType,
-                    amount: Number(amount),
-                    salaryDate,
-                    advance: advance ? Number(advance) : undefined,
-                    deduction: deduction ? Number(deduction) : undefined,
-                });
-                Alert.alert('Success', 'Salary record updated', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await updateSalary(editingSalary.id, data);
+                showToast('Salary record updated', 'success');
             } else {
-                await createSalary({
-                    driverId: Number(driverId),
-                    salaryType,
-                    amount: Number(amount),
-                    salaryDate,
-                    advance: advance ? Number(advance) : undefined,
-                    deduction: deduction ? Number(deduction) : undefined,
-                });
-                Alert.alert('Success', 'Salary payment recorded', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await createSalary(data);
+                showToast('Salary payment recorded', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create salary record');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create salary record');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingSalary ? "Edit Salary" : "Record Salary"}>
             <ScrollView contentContainerStyle={styles.content}>
 
                 <View style={styles.inputGroup}>

@@ -13,6 +13,7 @@ export interface Expense {
     driverId?: number;
     driver?: Driver;
     notes?: string;
+    bill_file?: string;
 }
 
 export const getExpenses = async () => {

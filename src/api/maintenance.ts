@@ -3,6 +3,9 @@ import client from './client';
 export interface Maintenance {
     id: number;
     vehicleId: number;
+    vehicle?: {
+        vehicleNumber: string;
+    };
     maintenanceType: string;
     date: string;
     odometer: number;

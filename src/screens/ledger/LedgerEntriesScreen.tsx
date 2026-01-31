@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getLedgerEntries, LedgerEntry } from '../../api/ledger';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, ArrowUpRight, ArrowDownLeft, Calendar } from 'lucide-react-native';
 
 export const LedgerEntriesScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [entries, setEntries] = useState<LedgerEntry[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchEntries = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const LedgerEntriesScreen = () => {
             setEntries(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch entries');
+            showToast('Failed to fetch entries', 'error');
         } finally {
             setLoading(false);
         }

@@ -32,6 +32,7 @@ export interface Trip {
     totalAmount: number;
     notes?: string;
     tripStatus?: string;
+    bill_file?: string;
     details: TripDetail[];
 }
 

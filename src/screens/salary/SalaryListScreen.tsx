@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getSalaries, Salary } from '../../api/salary';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, Banknote, Calendar, User, Phone } from 'lucide-react-native';
 
 export const SalaryListScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [salaries, setSalaries] = useState<Salary[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchSalaries = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const SalaryListScreen = () => {
             setSalaries(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch salaries');
+            showToast('Failed to fetch salaries', 'error');
         } finally {
             setLoading(false);
         }

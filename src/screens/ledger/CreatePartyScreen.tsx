@@ -7,9 +7,11 @@ import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { createParty, updateParty, Party } from '../../api/ledger';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreatePartyScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingParty = route.params?.party as Party | undefined;
     const [loading, setLoading] = useState(false);
 
@@ -29,43 +31,41 @@ export const CreatePartyScreen = ({ route }: any) => {
 
     const handleSubmit = async () => {
         if (!partyName || !partyType) {
-            Alert.alert('Error', 'Name and Type are required');
+            showToast('Name and Type are required', 'warning');
             return;
         }
 
         setLoading(true);
         try {
+            const data = {
+                partyName,
+                partyType,
+                contact: contact || undefined,
+                creditLimit: creditLimit ? Number(creditLimit) : undefined,
+            };
+
             if (editingParty) {
-                await updateParty(editingParty.id, {
-                    partyName,
-                    partyType,
-                    contact: contact || undefined,
-                    creditLimit: creditLimit ? Number(creditLimit) : undefined,
-                });
-                Alert.alert('Success', 'Party updated successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await updateParty(editingParty.id, data);
+                showToast('Party updated successfully', 'success');
             } else {
-                await createParty({
-                    partyName,
-                    partyType,
-                    contact: contact || undefined,
-                    creditLimit: creditLimit ? Number(creditLimit) : undefined,
-                });
-                Alert.alert('Success', 'Party created successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await createParty(data);
+                showToast('Party created successfully', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create party');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create party');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingParty ? "Edit Party" : "Add Party"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <Input label="Party Name *" value={partyName} onChangeText={setPartyName} />
                 <View style={styles.inputContainer}>

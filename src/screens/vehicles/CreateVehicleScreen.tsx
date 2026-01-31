@@ -8,9 +8,11 @@ import { DatePickerInput } from '../../components/DatePickerInput';
 import { Button } from '../../components/Button';
 import { createVehicle, updateVehicle, Vehicle } from '../../api/vehicles';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateVehicleScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingVehicle = route.params?.vehicle as Vehicle | undefined;
     const [loading, setLoading] = useState(false);
 
@@ -40,53 +42,46 @@ export const CreateVehicleScreen = ({ route }: any) => {
 
     const handleSubmit = async () => {
         if (!vehicleNumber || !vehicleType || !capacity) {
-            Alert.alert('Error', 'Vehicle Number, Type and Capacity are required');
+            showToast('Vehicle Number, Type and Capacity are required', 'warning');
             return;
         }
 
         setLoading(true);
         try {
+            const data = {
+                vehicleNumber,
+                vehicleType,
+                capacity: Number(capacity),
+                insuranceExpiry: insuranceExpiry || undefined,
+                pucExpiry: pucExpiry || undefined,
+                fitnessExpiry: fitnessExpiry || undefined,
+                purchaseDate: purchaseDate || undefined,
+                purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
+                status: status || undefined,
+            };
+
             if (editingVehicle) {
-                await updateVehicle(editingVehicle.id, {
-                    vehicleNumber,
-                    vehicleType,
-                    capacity: Number(capacity),
-                    insuranceExpiry: insuranceExpiry || undefined,
-                    pucExpiry: pucExpiry || undefined,
-                    fitnessExpiry: fitnessExpiry || undefined,
-                    purchaseDate: purchaseDate || undefined,
-                    purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
-                    status: status || undefined,
-                });
-                Alert.alert('Success', 'Vehicle updated successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await updateVehicle(editingVehicle.id, data);
+                showToast('Vehicle updated successfully', 'success');
             } else {
-                await createVehicle({
-                    vehicleNumber,
-                    vehicleType,
-                    capacity: Number(capacity),
-                    insuranceExpiry: insuranceExpiry || undefined,
-                    pucExpiry: pucExpiry || undefined,
-                    fitnessExpiry: fitnessExpiry || undefined,
-                    purchaseDate: purchaseDate || undefined,
-                    purchasePrice: purchasePrice ? Number(purchasePrice) : undefined,
-                    status: status || undefined,
-                });
-                Alert.alert('Success', 'Vehicle created successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await createVehicle(data);
+                showToast('Vehicle created successfully', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create vehicle');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create vehicle');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingVehicle ? "Edit Vehicle" : "Add Vehicle"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <Input label="Vehicle Number *" value={vehicleNumber} onChangeText={setVehicleNumber} />
                 <View style={styles.inputContainer}>

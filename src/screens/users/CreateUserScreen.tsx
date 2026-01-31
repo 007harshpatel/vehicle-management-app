@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { StyleSheet, Alert, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { Button } from '../../components/Button';
 import { createUser, updateUser, User } from '../../api/users';
-import { Spacing } from '../../constants/theme';
+import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateUserScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingUser = route.params?.user as User | undefined;
     const [loading, setLoading] = useState(false);
 
@@ -33,47 +35,44 @@ export const CreateUserScreen = ({ route }: any) => {
 
     const handleSubmit = async () => {
         if (!name || !mobile) {
-            Alert.alert('Error', 'Name and Mobile are required');
+            showToast('Name and Mobile are required', 'warning');
             return;
         }
 
         setLoading(true);
         try {
+            const data = {
+                name,
+                mobile,
+                email: email || undefined,
+                password: password || undefined,
+                businessName: businessName || undefined,
+                gstNumber: gstNumber || undefined,
+            };
+
             if (editingUser) {
-                await updateUser(editingUser.id, {
-                    name,
-                    mobile,
-                    email: email || undefined,
-                    password: password || undefined, // Only update if provided
-                    businessName: businessName || undefined,
-                    gstNumber: gstNumber || undefined,
-                });
-                Alert.alert('Success', 'User updated successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await updateUser(editingUser.id, data);
+                showToast('User updated successfully', 'success');
             } else {
-                await createUser({
-                    name,
-                    mobile,
-                    email: email || undefined,
-                    password: password || undefined,
-                    businessName: businessName || undefined,
-                    gstNumber: gstNumber || undefined,
-                });
-                Alert.alert('Success', 'User created successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                // For creation, if password is not provided, default to 'password'
+                await createUser({ ...data, password: data.password || 'password' });
+                showToast('User created successfully', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create user');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create user');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingUser ? "Edit User" : "Add User"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <Input label="Name *" value={name} onChangeText={setName} />
                 <Input label="Mobile *" value={mobile} onChangeText={setMobile} keyboardType="phone-pad" />

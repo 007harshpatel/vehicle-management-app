@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getUsers, User } from '../../api/users';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, User as UserIcon, Phone, Mail, Briefcase } from 'lucide-react-native';
 
 export const UsersListScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchUsers = async () => {
         setLoading(true);
@@ -22,7 +24,7 @@ export const UsersListScreen = () => {
             setUsers(usersList);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch users');
+            showToast('Failed to fetch users', 'error');
         } finally {
             setLoading(false);
         }

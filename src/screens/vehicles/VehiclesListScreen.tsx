@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getVehicles, Vehicle } from '../../api/vehicles';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, Truck, Hash, Box, Info } from 'lucide-react-native';
 
 export const VehiclesListScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchVehicles = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const VehiclesListScreen = () => {
             setVehicles(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch vehicles');
+            showToast('Failed to fetch vehicles', 'error');
         } finally {
             setLoading(false);
         }

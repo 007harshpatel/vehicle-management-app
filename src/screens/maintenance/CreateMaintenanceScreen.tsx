@@ -9,10 +9,12 @@ import { Button } from '../../components/Button';
 import { createMaintenance, updateMaintenance, Maintenance } from '../../api/maintenance';
 import { getVehicles, Vehicle } from '../../api/vehicles';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateMaintenanceScreen = ({ route }: any) => {
     const navigation = useNavigation();
-    const editingMaintenance = route.params?.maintenance as Maintenance | undefined;
+    const { showToast } = useToast();
+    const editingRecord = route.params?.maintenance as Maintenance | undefined;
     const [loading, setLoading] = useState(false);
 
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -27,18 +29,18 @@ export const CreateMaintenanceScreen = ({ route }: any) => {
     const [nextServiceDate, setNextServiceDate] = useState('');
 
     useEffect(() => {
-        if (editingMaintenance) {
-            setVehicleId(editingMaintenance.vehicleId.toString());
-            setMaintenanceType(editingMaintenance.maintenanceType);
-            setDate(editingMaintenance.date);
-            setOdometer(editingMaintenance.odometer.toString());
-            setVendor(editingMaintenance.vendor);
-            setDescription(editingMaintenance.description);
-            setTotalCost(editingMaintenance.totalCost.toString());
-            setNextServiceDue(editingMaintenance.nextServiceDue ? editingMaintenance.nextServiceDue.toString() : '');
-            setNextServiceDate(editingMaintenance.nextServiceDate || '');
+        if (editingRecord) {
+            setVehicleId(editingRecord.vehicleId.toString());
+            setMaintenanceType(editingRecord.maintenanceType);
+            setDate(editingRecord.date);
+            setOdometer(editingRecord.odometer.toString());
+            setVendor(editingRecord.vendor);
+            setDescription(editingRecord.description);
+            setTotalCost(editingRecord.totalCost.toString());
+            setNextServiceDue(editingRecord.nextServiceDue ? editingRecord.nextServiceDue.toString() : '');
+            setNextServiceDate(editingRecord.nextServiceDate || '');
         }
-    }, [editingMaintenance]);
+    }, [editingRecord]);
 
     useEffect(() => {
         loadVehicles();
@@ -50,59 +52,52 @@ export const CreateMaintenanceScreen = ({ route }: any) => {
             setVehicles(data);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to load vehicles');
+            showToast('Failed to load vehicles', 'error');
         }
     };
 
     const handleSubmit = async () => {
         if (!vehicleId || !maintenanceType || !date || !totalCost) {
-            Alert.alert('Error', 'Vehicle, Type, Date and Cost are required');
+            showToast('Vehicle, Type, Date and Cost are required', 'warning');
             return;
         }
 
         setLoading(true);
         try {
-            if (editingMaintenance) {
-                await updateMaintenance(editingMaintenance.id, {
-                    vehicleId: Number(vehicleId),
-                    maintenanceType,
-                    date,
-                    odometer: Number(odometer),
-                    vendor,
-                    description,
-                    totalCost: Number(totalCost),
-                    nextServiceDue: nextServiceDue ? Number(nextServiceDue) : undefined,
-                    nextServiceDate: nextServiceDate || undefined,
-                });
-                Alert.alert('Success', 'Maintenance record updated', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+            const formData = {
+                vehicleId: Number(vehicleId),
+                maintenanceType,
+                date,
+                odometer: Number(odometer),
+                vendor,
+                description,
+                totalCost: Number(totalCost),
+                nextServiceDue: nextServiceDue ? Number(nextServiceDue) : undefined,
+                nextServiceDate: nextServiceDate || undefined,
+            };
+
+            if (editingRecord) {
+                await updateMaintenance(editingRecord.id, formData);
+                showToast('Maintenance record updated', 'success');
             } else {
-                await createMaintenance({
-                    vehicleId: Number(vehicleId),
-                    maintenanceType,
-                    date,
-                    odometer: Number(odometer),
-                    vendor,
-                    description,
-                    totalCost: Number(totalCost),
-                    nextServiceDue: nextServiceDue ? Number(nextServiceDue) : undefined,
-                    nextServiceDate: nextServiceDate || undefined,
-                });
-                Alert.alert('Success', 'Maintenance record created', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await createMaintenance(formData);
+                showToast('Maintenance record created', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create record');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create record');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingRecord ? "Edit Maintenance" : "Add Maintenance"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Vehicle *</Text>
@@ -152,7 +147,7 @@ export const CreateMaintenanceScreen = ({ route }: any) => {
                 />
 
                 <Button
-                    title={editingMaintenance ? "Update Record" : "Create Record"}
+                    title={editingRecord ? "Update Record" : "Create Record"}
                     onPress={handleSubmit}
                     loading={loading}
                     style={styles.button}

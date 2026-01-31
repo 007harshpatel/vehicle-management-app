@@ -6,13 +6,15 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getDrivers, Driver } from '../../api/drivers';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, UserCog, Phone, FileText, CheckCircle, AlertCircle, Pencil } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 
 export const DriversListScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [drivers, setDrivers] = useState<Driver[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchDrivers = async () => {
         setLoading(true);
@@ -21,7 +23,7 @@ export const DriversListScreen = () => {
             setDrivers(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch drivers');
+            showToast('Failed to fetch drivers', 'error');
         } finally {
             setLoading(false);
         }

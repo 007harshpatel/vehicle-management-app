@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getExpenses, Expense } from '../../api/expenses';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, Tag, Calendar, Wallet, CreditCard, Truck, User } from 'lucide-react-native';
 
 export const ExpensesListScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchExpenses = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const ExpensesListScreen = () => {
             setExpenses(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch expenses');
+            showToast('Failed to fetch expenses', 'error');
         } finally {
             setLoading(false);
         }

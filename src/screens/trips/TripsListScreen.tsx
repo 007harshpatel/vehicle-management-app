@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getTrips, Trip } from '../../api/trips';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, MapPin, Calendar, Receipt, Navigation } from 'lucide-react-native';
 
 export const TripsListScreen = () => {
     const [trips, setTrips] = useState<Trip[]>([]);
     const [loading, setLoading] = useState(true);
     const navigation = useNavigation<any>();
+    const { showToast } = useToast();
 
     const fetchTrips = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const TripsListScreen = () => {
             setTrips(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch trips');
+            showToast('Failed to fetch trips', 'error');
         } finally {
             setLoading(false);
         }
@@ -70,16 +72,14 @@ export const TripsListScreen = () => {
     );
 
     return (
-        <ScreenContainer>
-            <View style={styles.header}>
-                <Text style={styles.title}>Trips</Text>
-                <Button
-                    title="New Trip"
-                    onPress={() => navigation.navigate('CreateTrip')}
-                    icon={Plus}
-                    style={styles.addButton}
-                />
-            </View>
+        <ScreenContainer
+            title="Trips"
+            rightAction={
+                <TouchableOpacity onPress={() => navigation.navigate('CreateTrip')} style={{ padding: 4 }}>
+                    <Plus color="white" size={24} />
+                </TouchableOpacity>
+            }
+        >
 
             {loading ? (
                 <ActivityIndicator size="large" color={Colors.primary} />
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.sm,
     },
     list: {
-        paddingBottom: Spacing.xl,
+        paddingBottom: 100,
     },
     card: {
         padding: Spacing.md,

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Alert, ScrollView, View, Text, TouchableOpacity, Modal, Image } from 'react-native';
+import { StyleSheet, Alert, ScrollView, View, Text, TouchableOpacity, Modal, Image, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Camera, Image as ImageIcon, FileText, X } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, FileText, X, Download } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { DatePickerInput } from '../../components/DatePickerInput';
@@ -12,10 +12,13 @@ import { Button } from '../../components/Button';
 import { createExpense, updateExpense, Expense } from '../../api/expenses';
 import { getVehicles, Vehicle } from '../../api/vehicles';
 import { getDrivers, Driver } from '../../api/drivers';
+import { BASE_URL } from '../../api/client';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 
 export const CreateExpenseScreen = ({ route }: any) => {
     const navigation = useNavigation();
+    const { showToast } = useToast();
     const editingExpense = route.params?.expense as Expense | undefined;
     const [loading, setLoading] = useState(false);
 
@@ -31,7 +34,9 @@ export const CreateExpenseScreen = ({ route }: any) => {
     const [notes, setNotes] = useState('');
 
     // File Upload State
+    // File Upload State
     const [billFile, setBillFile] = useState<any>(null);
+    const [existingFile, setExistingFile] = useState<string | null>(null);
     const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
     useEffect(() => {
@@ -43,6 +48,9 @@ export const CreateExpenseScreen = ({ route }: any) => {
             setVehicleId(editingExpense.vehicleId ? editingExpense.vehicleId.toString() : '');
             setDriverId(editingExpense.driverId ? editingExpense.driverId.toString() : '');
             setNotes(editingExpense.notes || '');
+            if (editingExpense.bill_file) {
+                setExistingFile(editingExpense.bill_file);
+            }
         }
     }, [editingExpense]);
 
@@ -65,7 +73,7 @@ export const CreateExpenseScreen = ({ route }: any) => {
 
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch required data');
+            showToast('Failed to fetch required data', 'error');
         }
     };
 
@@ -76,7 +84,7 @@ export const CreateExpenseScreen = ({ route }: any) => {
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
-            allowsEditing: true,
+            allowsEditing: false,
             aspect: [4, 3],
             quality: 0.8,
         });
@@ -112,12 +120,12 @@ export const CreateExpenseScreen = ({ route }: any) => {
     const takePhoto = async () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
         if (permissionResult.granted === false) {
-            Alert.alert("Permission to access camera is required!");
+            showToast("Permission to access camera is required!", 'error');
             return;
         }
 
         const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: true,
+            allowsEditing: false,
             aspect: [4, 3],
             quality: 0.8,
         });
@@ -135,7 +143,7 @@ export const CreateExpenseScreen = ({ route }: any) => {
 
     const handleSubmit = async () => {
         if (!date || !category || !amount || !paymentMode) {
-            Alert.alert('Error', 'Date, Category, Amount and Payment Mode are required');
+            showToast('Date, Category, Amount and Payment Mode are required', 'warning');
             return;
         }
 
@@ -161,25 +169,26 @@ export const CreateExpenseScreen = ({ route }: any) => {
         try {
             if (editingExpense) {
                 await updateExpense(editingExpense.id, formData);
-                Alert.alert('Success', 'Expense updated successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                showToast('Expense updated successfully', 'success');
             } else {
                 await createExpense(formData);
-                Alert.alert('Success', 'Expense created successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                showToast('Expense created successfully', 'success');
             }
-        } catch (error) {
+            navigation.goBack();
+        } catch (error: any) {
             console.error(error);
-            Alert.alert('Error', 'Failed to create expense');
+            const errorMessage = error.response?.data?.message;
+            const toastMessage = Array.isArray(errorMessage)
+                ? errorMessage[0]
+                : (errorMessage || 'Failed to create expense');
+            showToast(toastMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ScreenContainer>
+        <ScreenContainer title={editingExpense ? "Edit Expense" : "Add Expense"}>
             <ScrollView contentContainerStyle={styles.content}>
                 <DatePickerInput
                     label="Date (YYYY-MM-DD) *"
@@ -261,6 +270,25 @@ export const CreateExpenseScreen = ({ route }: any) => {
                 <TouchableOpacity onPress={handleUploadPress} style={styles.uploadButton}>
                     <Text style={styles.uploadButtonText}>{billFile ? "Change Bill File" : "Upload Bill"}</Text>
                 </TouchableOpacity>
+
+                {/* Show Existing File if no new file selected */}
+                {existingFile && !billFile && (
+                    <View style={styles.existingFileContainer}>
+                        <View style={styles.existingFileIcon}>
+                            <FileText size={24} color={Colors.primary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <Text style={styles.existingFileLabel}>Uploaded File Available</Text>
+                            <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingFile}`)}>
+                                <Text style={styles.downloadLink}>Tap to Download/View</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingFile}`)} style={styles.downloadButton}>
+                            <Download size={20} color={Colors.white} />
+                        </TouchableOpacity>
+                    </View>
+                )}
+
 
                 {billFile && (
                     <View style={styles.filePreview}>
@@ -392,5 +420,12 @@ const styles = StyleSheet.create({
     uploadOptions: { flexDirection: 'row', justifyContent: 'space-around' },
     uploadOption: { alignItems: 'center' },
     iconContainer: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
-    uploadOptionText: { fontSize: 14, color: Colors.text, fontWeight: '500' }
+    uploadOptionText: { fontSize: 14, color: Colors.text, fontWeight: '500' },
+
+    // Existing File Styles
+    existingFileContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', padding: 12, borderRadius: BorderRadius.sm, marginBottom: Spacing.md, borderWidth: 1, borderColor: '#bbdefb' },
+    existingFileIcon: { marginRight: 12 },
+    existingFileLabel: { fontSize: 14, fontWeight: '600', color: Colors.text },
+    downloadLink: { fontSize: 12, color: Colors.primary, textDecorationLine: 'underline', marginTop: 2 },
+    downloadButton: { padding: 8, backgroundColor: Colors.primary, borderRadius: 20, marginLeft: 10 },
 });

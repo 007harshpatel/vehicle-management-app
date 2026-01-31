@@ -6,12 +6,14 @@ import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { getMaintenance, Maintenance } from '../../api/maintenance';
 import { Colors, Spacing } from '../../constants/theme';
+import { useToast } from '../../context/ToastContext';
 import { Plus, Wrench, Calendar, Truck } from 'lucide-react-native';
 
 export const MaintenanceListScreen = () => {
+    const navigation = useNavigation<any>();
+    const { showToast } = useToast();
     const [records, setRecords] = useState<Maintenance[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigation = useNavigation<any>();
 
     const fetchRecords = async () => {
         setLoading(true);
@@ -20,7 +22,7 @@ export const MaintenanceListScreen = () => {
             setRecords(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error(error);
-            Alert.alert('Error', 'Failed to fetch maintenance records');
+            showToast('Failed to fetch maintenance records', 'error');
         } finally {
             setLoading(false);
         }
@@ -56,7 +58,7 @@ export const MaintenanceListScreen = () => {
                 </View>
                 <View style={styles.row}>
                     <Truck size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
-                    <Text style={styles.detail}>Vehicle ID: {item.vehicleId}</Text>
+                    <Text style={styles.detail}>Vehicle No: {item.vehicle?.vehicleNumber || item.vehicleId}</Text>
                 </View>
                 {item.vendor && <Text style={styles.detail}>Vendor: {item.vendor}</Text>}
             </View>

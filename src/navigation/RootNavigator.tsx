@@ -85,7 +85,10 @@ export const RootNavigator = () => {
                         <Stack.Screen name="EditNotification" component={require('../screens/notifications/EditNotificationScreen').default} />
                     </>
                 ) : (
-                    <Stack.Screen name="Login" component={LoginScreen} />
+                    <>
+                        <Stack.Screen name="Login" component={LoginScreen} />
+                        <Stack.Screen name="Signup" component={require('../screens/auth/SignupScreen').SignupScreen} />
+                    </>
                 )}
             </Stack.Navigator>
         </NavigationContainer>

@@ -11,6 +11,9 @@ export interface Driver {
     salaryAmount?: number;
     joiningDate?: string;
     status?: string;
+    aadhaarFile?: string;
+    licenseFile?: string;
+    photo?: string;
 }
 
 export const getDrivers = async () => {
@@ -18,12 +21,20 @@ export const getDrivers = async () => {
     return response.data;
 };
 
-export const createDriver = async (driverData: Omit<Driver, 'id'>) => {
-    const response = await client.post('/drivers', driverData);
+export const createDriver = async (driverData: any) => {
+    const response = await client.post('/drivers', driverData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };
 
-export const updateDriver = async (id: number, driverData: Partial<Omit<Driver, 'id'>>) => {
-    const response = await client.patch(`/drivers/${id}`, driverData);
+export const updateDriver = async (id: number, driverData: any) => {
+    const response = await client.patch(`/drivers/${id}`, driverData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return response.data;
 };

@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getParties, Party } from '../../api/ledger';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, BookOpen, Phone, Briefcase, List } from 'lucide-react-native';
+
 
 export const LedgerPartiesScreen = () => {
     const navigation = useNavigation<any>();
@@ -41,7 +41,7 @@ export const LedgerPartiesScreen = () => {
                 onPress={() => navigation.navigate('CreateParty', { party: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#607D8B' + '20' }]}>
-                    <BookOpen size={24} color="#607D8B" />
+                    <Text style={{ fontSize: 24 }}>📖</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.name}>{item.partyName}</Text>
@@ -54,7 +54,7 @@ export const LedgerPartiesScreen = () => {
             <View style={styles.details}>
                 {item.contact && (
                     <View style={styles.row}>
-                        <Phone size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>📞</Text>
                         <Text style={styles.detail}>{item.contact}</Text>
                     </View>
                 )}
@@ -68,16 +68,14 @@ export const LedgerPartiesScreen = () => {
                 <Text style={styles.title}>Ledger Parties</Text>
                 <View style={styles.buttons}>
                     <Button
-                        title="Entries"
+                        title="Entries 📋"
                         onPress={() => navigation.navigate('LedgerEntries')}
                         variant="outline"
-                        icon={List}
                         style={[styles.button, { marginRight: Spacing.sm }]}
                     />
                     <Button
-                        title="Add Party"
+                        title="Add Party ➕"
                         onPress={() => navigation.navigate('CreateParty')}
-                        icon={Plus}
                         style={styles.button}
                     />
                 </View>

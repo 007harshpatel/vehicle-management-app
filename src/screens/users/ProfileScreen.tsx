@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Dimensions, Platfo
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
-import { User, Mail, Phone, LogOut, Save, Camera, Shield } from 'lucide-react-native';
+
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 const { width } = Dimensions.get('window');
@@ -76,7 +76,7 @@ export const ProfileScreen = () => {
                                     }
                                 ]}
                             >
-                                <User size={AVATAR_SIZE / 2} color="#243b55" />
+                                <Text style={{ fontSize: AVATAR_SIZE / 2 }}>👤</Text>
                                 {/* <TouchableOpacity style={styles.cameraButton}>
                                     <Camera size={16} color="white" />
                                 </TouchableOpacity> */}
@@ -110,7 +110,7 @@ export const ProfileScreen = () => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Full Name</Text>
                             <View style={styles.inputContainer}>
-                                <User size={20} color="#666" style={styles.inputIcon} />
+                                <Text style={[styles.inputIcon, { fontSize: 20 }]}>👤</Text>
                                 <TextInput
                                     style={styles.input}
                                     value={name}
@@ -123,7 +123,7 @@ export const ProfileScreen = () => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Email Address</Text>
                             <View style={styles.inputContainer}>
-                                <Mail size={20} color="#666" style={styles.inputIcon} />
+                                <Text style={[styles.inputIcon, { fontSize: 20 }]}>📧</Text>
                                 <TextInput
                                     style={styles.input}
                                     value={email}
@@ -138,7 +138,7 @@ export const ProfileScreen = () => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Phone Number</Text>
                             <View style={styles.inputContainer}>
-                                <Phone size={20} color="#666" style={styles.inputIcon} />
+                                <Text style={[styles.inputIcon, { fontSize: 20 }]}>📞</Text>
                                 <TextInput
                                     style={styles.input}
                                     value={phone}
@@ -152,7 +152,7 @@ export const ProfileScreen = () => {
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>User Role</Text>
                             <View style={[styles.inputContainer, { backgroundColor: '#f0f0f0' }]}>
-                                <Shield size={20} color="#666" style={styles.inputIcon} />
+                                <Text style={[styles.inputIcon, { fontSize: 20 }]}>🛡️</Text>
                                 <TextInput
                                     style={[styles.input, { color: '#666' }]}
                                     value={user?.role?.toUpperCase() || 'OWNER'}
@@ -166,13 +166,13 @@ export const ProfileScreen = () => {
                                 colors={['#4c669f', '#3b5998']}
                                 style={styles.gradientButton}
                             >
-                                <Save size={20} color="white" style={{ marginRight: 10 }} />
+                                <Text style={{ fontSize: 20, marginRight: 10, color: 'white' }}>💾</Text>
                                 <Text style={styles.buttonText}>Update Profile</Text>
                             </LinearGradient>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-                            <LogOut size={20} color="#FF5252" style={{ marginRight: 10 }} />
+                            <Text style={{ fontSize: 20, marginRight: 10 }}>🚪</Text>
                             <Text style={styles.logoutText}>Logout</Text>
                         </TouchableOpacity>
                     </View>

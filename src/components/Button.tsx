@@ -2,7 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator, StyleProp } from 'react-native';
 import { Colors, Spacing, BorderRadius } from '../constants/theme';
 
-import { LucideIcon } from 'lucide-react-native';
+// import { LucideIcon } from 'lucide-react-native';
 
 interface ButtonProps {
     title: string;
@@ -12,7 +12,7 @@ interface ButtonProps {
     textStyle?: TextStyle;
     loading?: boolean;
     disabled?: boolean;
-    icon?: LucideIcon;
+    icon?: any;
 }
 
 export const Button: React.FC<ButtonProps> = ({

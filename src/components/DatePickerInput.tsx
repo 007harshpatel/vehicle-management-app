@@ -15,7 +15,13 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({ label, value, 
     const [show, setShow] = useState(false);
 
     // Convert value to Date object for the picker
-    const dateValue = value instanceof Date ? value : (value ? new Date(value) : new Date());
+    const getSafeDate = (val: any) => {
+        if (!val) return new Date();
+        const d = val instanceof Date ? val : new Date(val);
+        return isNaN(d.getTime()) ? new Date() : d;
+    };
+
+    const dateValue = getSafeDate(value);
 
     // Display value as YYYY-MM-DD
     const displayValue = value instanceof Date

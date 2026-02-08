@@ -10,6 +10,7 @@ export const Colors = {
   success: '#4CD964',
   textLight: '#757575',
   border: '#E0E0E0',
+  warning: '#FF9500', // Orange
 };
 
 export const Spacing = {

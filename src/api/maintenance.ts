@@ -14,6 +14,7 @@ export interface Maintenance {
     totalCost: number;
     nextServiceDue?: number;
     nextServiceDate?: string;
+    billFile?: string;
 }
 
 export const getMaintenance = async () => {
@@ -21,12 +22,26 @@ export const getMaintenance = async () => {
     return response.data;
 };
 
-export const createMaintenance = async (data: Omit<Maintenance, 'id'>) => {
-    const response = await client.post('/maintenance', data);
+export const createMaintenance = async (data: any) => {
+    const response = await client.post('/maintenance', data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+        transformRequest: (data, headers) => {
+            return data;
+        }
+    });
     return response.data;
 };
 
-export const updateMaintenance = async (id: number, data: Partial<Omit<Maintenance, 'id'>>) => {
-    const response = await client.patch(`/maintenance/${id}`, data);
+export const updateMaintenance = async (id: number, data: any) => {
+    const response = await client.patch(`/maintenance/${id}`, data, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+        transformRequest: (data, headers) => {
+            return data;
+        }
+    });
     return response.data;
 };

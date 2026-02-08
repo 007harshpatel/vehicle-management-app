@@ -5,10 +5,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getDashboardStats, DashboardStats } from '../api/dashboard';
-import {
-    Bus, Truck, Wallet, Banknote, BookOpen, Wrench,
-    Plus, TrendingUp, TrendingDown, DollarSign, LogOut, Bell, ChevronRight
-} from 'lucide-react-native';
+
 
 const { width } = Dimensions.get('window');
 const HEADER_MAX_HEIGHT = 190; // Reverted to user preference
@@ -34,45 +31,17 @@ const ServiceCard = ({ title, icon: Icon, color, priceTag, onPress }: any) => (
             </View>
         )}
         <View style={[styles.iconContainer, { backgroundColor: color + '15' }]}>
+            {/* If Icon is a function (component), render it; otherwise if it was a component class we'd calculate differently, but here we pass functional components or similar */}
             <Icon size={28} color={color} />
         </View>
         <Text style={styles.serviceTitle}>{title}</Text>
         <View style={styles.arrowContainer}>
-            <ChevronRight size={16} color="#8E8E93" />
+            <Text style={{ fontSize: 16, color: "#8E8E93" }}>›</Text>
         </View>
     </TouchableOpacity>
 );
 
-const ActiveOrderCard = ({ trip }: { trip: any }) => (
-    <View style={styles.activeOrderCard}>
-        <View style={styles.orderHeader}>
-            <Text style={styles.orderTitle}>Trip #{trip.billNo}</Text>
-            <View style={styles.statusBadge}>
-                <Text style={styles.statusText}>{trip.tripStatus || 'On-Process'}</Text>
-            </View>
-        </View>
 
-        <View style={styles.orderRow}>
-            <Truck size={14} color="#666" />
-            <Text style={styles.orderDetailText}>
-                {trip.details?.map((d: any) => d.vehicleNumber).join(', ') || 'Vehicle Unassigned'}
-            </Text>
-            <Text style={styles.dot}>•</Text>
-            <Text style={styles.orderDetailText}>₹{trip.totalAmount}</Text>
-        </View>
-
-        <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-                <View style={[styles.progressFill, { width: '60%' }]} />
-            </View>
-            <View style={styles.progressLabels}>
-                <Text style={styles.progressLabel}>Picked</Text>
-                <Text style={styles.progressLabel}>Transit</Text>
-                <Text style={styles.progressLabel}>Delivered</Text>
-            </View>
-        </View>
-    </View>
-);
 
 const SummaryChip = ({ label, value, icon: Icon, color }: any) => (
     <View style={styles.summaryChip}>
@@ -139,13 +108,14 @@ export const DashboardScreen = () => {
         />
     );
 
+
     const services = [
-        { title: 'Create Trip', icon: Plus, route: 'CreateTrip', color: '#4c669f', priceTag: 'New' },
-        { title: 'Vehicles', icon: Truck, route: 'VehiclesList', color: '#00C853' },
+        { title: 'Create Trip', icon: () => <Text style={{ fontSize: 28 }}>➕</Text>, route: 'CreateTrip', color: '#4c669f', priceTag: 'New' },
+        { title: 'Vehicles', icon: () => <Text style={{ fontSize: 28 }}>🚛</Text>, route: 'VehiclesList', color: '#00C853' },
         { title: 'Drivers', icon: DriverIcon, route: 'DriversList', color: '#FF6D00' },
-        { title: 'Expenses', icon: Wallet, route: 'ExpensesList', color: '#D50000' },
-        { title: 'Maintenance', icon: Wrench, route: 'MaintenanceList', color: '#37474F' },
-        { title: 'Ledger', icon: BookOpen, route: 'LedgerParties', color: '#6200EA' },
+        { title: 'Expenses', icon: () => <Text style={{ fontSize: 28 }}>💸</Text>, route: 'ExpensesList', color: '#D50000' },
+        { title: 'Maintenance', icon: () => <Text style={{ fontSize: 28 }}>🔧</Text>, route: 'MaintenanceList', color: '#37474F' },
+        { title: 'Ledger', icon: () => <Text style={{ fontSize: 28 }}>📖</Text>, route: 'LedgerParties', color: '#6200EA' },
     ];
 
     return (
@@ -169,9 +139,9 @@ export const DashboardScreen = () => {
                             <Text style={styles.greetingSubtitle}>Your Business Overview</Text>
 
                             <View style={styles.summaryRow}>
-                                <SummaryChip label="Income" value={formatShortCurrency(stats.income)} icon={TrendingUp} color="#448AFF" />
-                                <SummaryChip label="Expense" value={formatShortCurrency(stats.expense)} icon={TrendingDown} color="#FF5252" />
-                                <SummaryChip label="Profit" value={formatShortCurrency(stats.profit)} icon={DollarSign} color="#4CAF50" />
+                                <SummaryChip label="Income" value={formatShortCurrency(stats.income)} icon={() => <Text style={{ fontSize: 16 }}>📈</Text>} color="#448AFF" />
+                                <SummaryChip label="Expense" value={formatShortCurrency(stats.expense)} icon={() => <Text style={{ fontSize: 16 }}>📉</Text>} color="#FF5252" />
+                                <SummaryChip label="Profit" value={formatShortCurrency(stats.profit)} icon={() => <Text style={{ fontSize: 16 }}>💰</Text>} color="#4CAF50" />
                             </View>
                         </Animated.View>
                     </SafeAreaView>
@@ -193,17 +163,7 @@ export const DashboardScreen = () => {
 
                 <View style={styles.bodyContainer}>
 
-                    {/* Active Orders */}
-                    <View style={styles.section}>
-                        <SectionHeader title="Recent Trips" onSeeAll={() => navigation.navigate('Trips')} />
-                        {stats.recentTrips && stats.recentTrips.length > 0 ? (
-                            stats.recentTrips.map((trip: any, index: number) => (
-                                <ActiveOrderCard key={index} trip={trip} />
-                            ))
-                        ) : (
-                            <Text style={styles.emptyText}>No Recent Trips.</Text>
-                        )}
-                    </View>
+
 
                     {/* Services Grid */}
                     <View style={styles.section}>
@@ -228,7 +188,7 @@ export const DashboardScreen = () => {
                                 <Text style={styles.promoLink}>Manage Now</Text>
                             </TouchableOpacity>
                         </View>
-                        <Banknote size={48} color="#FF6D00" style={{ opacity: 0.8 }} />
+                        <Text style={{ fontSize: 48, opacity: 0.8 }}>💵</Text>
                     </View>
 
                     <View style={{ height: 120 }} />

@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getLedgerEntries, LedgerEntry } from '../../api/ledger';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, ArrowUpRight, ArrowDownLeft, Calendar } from 'lucide-react-native';
+
 
 export const LedgerEntriesScreen = () => {
     const navigation = useNavigation<any>();
@@ -36,7 +36,9 @@ export const LedgerEntriesScreen = () => {
 
     const renderItem = ({ item }: { item: LedgerEntry }) => {
         const isCredit = item.entryType === 'credit';
-        const Icon = isCredit ? ArrowDownLeft : ArrowUpRight;
+        // Icon logic was: isCredit ? ArrowDownLeft : ArrowUpRight
+        // Emoji logic: Credit (Get money) = ↙️ or 🟢. Debit (Give money/expense) = ↗️ or 🔴.
+        const iconEmoji = isCredit ? '↙️' : '↗️';
         const color = isCredit ? Colors.success : Colors.error;
 
         return (
@@ -46,7 +48,7 @@ export const LedgerEntriesScreen = () => {
                     onPress={() => navigation.navigate('CreateLedgerEntry', { entry: item })}
                 >
                     <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
-                        <Icon size={24} color={color} />
+                        <Text style={{ fontSize: 24, color: color }}>{iconEmoji}</Text>
                     </View>
                     <View style={styles.headerText}>
                         <Text style={[styles.amount, { color: color }]}>
@@ -60,7 +62,7 @@ export const LedgerEntriesScreen = () => {
 
                 <View style={styles.details}>
                     <View style={styles.row}>
-                        <Calendar size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>📅</Text>
                         <Text style={styles.detail}>{item.date}</Text>
                     </View>
                     {item.notes && <Text style={styles.detail}>Note: {item.notes}</Text>}
@@ -74,9 +76,8 @@ export const LedgerEntriesScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>Ledger Entries</Text>
                 <Button
-                    title="Add Entry"
+                    title="Add Entry ➕"
                     onPress={() => navigation.navigate('CreateLedgerEntry')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>

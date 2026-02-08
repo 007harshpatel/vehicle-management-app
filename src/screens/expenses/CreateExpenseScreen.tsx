@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Camera, Image as ImageIcon, FileText, X, Download } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { DatePickerInput } from '../../components/DatePickerInput';
@@ -275,7 +274,7 @@ export const CreateExpenseScreen = ({ route }: any) => {
                 {existingFile && !billFile && (
                     <View style={styles.existingFileContainer}>
                         <View style={styles.existingFileIcon}>
-                            <FileText size={24} color={Colors.primary} />
+                            <Text style={{ fontSize: 24 }}>📄</Text>
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.existingFileLabel}>Uploaded File Available</Text>
@@ -284,7 +283,7 @@ export const CreateExpenseScreen = ({ route }: any) => {
                             </TouchableOpacity>
                         </View>
                         <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingFile}`)} style={styles.downloadButton}>
-                            <Download size={20} color={Colors.white} />
+                            <Text style={{ fontSize: 20, color: Colors.white }}>⬇️</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -320,28 +319,28 @@ export const CreateExpenseScreen = ({ route }: any) => {
                             <View style={styles.uploadModalHeader}>
                                 <Text style={styles.uploadModalTitle}>Upload Bill</Text>
                                 <TouchableOpacity onPress={() => setUploadModalVisible(false)}>
-                                    <X color={Colors.text} size={24} />
+                                    <Text style={{ fontSize: 24, color: Colors.text }}>✕</Text>
                                 </TouchableOpacity>
                             </View>
 
                             <View style={styles.uploadOptions}>
                                 <TouchableOpacity style={styles.uploadOption} onPress={takePhoto}>
                                     <View style={[styles.iconContainer, { backgroundColor: '#e3f2fd' }]}>
-                                        <Camera color="#2196F3" size={28} />
+                                        <Text style={{ fontSize: 28 }}>📷</Text>
                                     </View>
                                     <Text style={styles.uploadOptionText}>Camera</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity style={styles.uploadOption} onPress={pickImage}>
                                     <View style={[styles.iconContainer, { backgroundColor: '#e8f5e9' }]}>
-                                        <ImageIcon color="#4caf50" size={28} />
+                                        <Text style={{ fontSize: 28 }}>🖼️</Text>
                                     </View>
                                     <Text style={styles.uploadOptionText}>Gallery</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity style={styles.uploadOption} onPress={pickDocument}>
                                     <View style={[styles.iconContainer, { backgroundColor: '#fff3e0' }]}>
-                                        <FileText color="#ff9800" size={28} />
+                                        <Text style={{ fontSize: 28 }}>📄</Text>
                                     </View>
                                     <Text style={styles.uploadOptionText}>Document</Text>
                                 </TouchableOpacity>

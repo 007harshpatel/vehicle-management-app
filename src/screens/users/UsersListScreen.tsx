@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getUsers, User } from '../../api/users';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, User as UserIcon, Phone, Mail, Briefcase } from 'lucide-react-native';
+
 
 export const UsersListScreen = () => {
     const navigation = useNavigation<any>();
@@ -44,13 +44,13 @@ export const UsersListScreen = () => {
                 onPress={() => navigation.navigate('CreateUser', { user: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#4CAF50' + '20' }]}>
-                    <UserIcon size={24} color="#4CAF50" />
+                    <Text style={{ fontSize: 24 }}>👤</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.name}>{item.name}</Text>
                     {item.businessName && (
                         <View style={styles.row}>
-                            <Briefcase size={12} color={Colors.textLight} style={{ marginRight: 4 }} />
+                            <Text style={{ fontSize: 12, marginRight: 4 }}>💼</Text>
                             <Text style={styles.subtitle}>{item.businessName}</Text>
                         </View>
                     )}
@@ -61,12 +61,12 @@ export const UsersListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Phone size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📞</Text>
                     <Text style={styles.detail}>{item.mobile}</Text>
                 </View>
                 {item.email && (
                     <View style={styles.row}>
-                        <Mail size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>📧</Text>
                         <Text style={styles.detail}>{item.email}</Text>
                     </View>
                 )}
@@ -79,9 +79,8 @@ export const UsersListScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>All Users</Text>
                 <Button
-                    title="Add User"
+                    title="Add User ➕"
                     onPress={() => navigation.navigate('CreateUser')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>

@@ -1,22 +1,5 @@
 import client from './client';
 
-export interface TripDetail {
-    id?: number;
-    momentDate: string;
-    vehicleId: number;
-    vehicleNumber: string;
-    containerNo: string;
-
-    fromLocation: string;
-    viaLocation?: string;
-    toLocation: string;
-    weight: number;
-    frs: number;
-    loLo: number;
-    detention: number;
-    amount: number;
-}
-
 export interface Trip {
     id: number;
     driverId: number;
@@ -33,7 +16,37 @@ export interface Trip {
     notes?: string;
     tripStatus?: string;
     bill_file?: string;
-    details: TripDetail[];
+
+    // Flattened Details
+    momentDate: string;
+    vehicleId: number;
+    vehicleNumber: string;
+    containerNo: string;
+    fromLocation: string;
+    viaLocation?: string;
+    toLocation: string;
+    weight: number;
+    frs: number;
+    loLo: number;
+    detention: number;
+
+    // New Financial Fields
+    diesel: number;
+    driverExpense: number;
+    toll: number;
+    biltyCharge: number;
+    weighBridge: number;
+    extraCharge: number;
+    transporter?: string;
+    rate: number;
+    extraMoney: number;
+    receivedDate?: string;
+    receivedAmount: number;
+    pendingAmount: number;
+    totalProfit: number;
+    dealAmount?: number;
+    ourCostNote?: string;
+    partyBillNote?: string;
 }
 
 export const getTrips = async () => {

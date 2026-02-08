@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getMaintenance, Maintenance } from '../../api/maintenance';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Wrench, Calendar, Truck } from 'lucide-react-native';
+
 
 export const MaintenanceListScreen = () => {
     const navigation = useNavigation<any>();
@@ -41,7 +41,7 @@ export const MaintenanceListScreen = () => {
                 onPress={() => navigation.navigate('CreateMaintenance', { maintenance: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#795548' + '20' }]}>
-                    <Wrench size={24} color="#795548" />
+                    <Text style={{ fontSize: 24 }}>🔧</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.type}>{item.maintenanceType}</Text>
@@ -53,11 +53,11 @@ export const MaintenanceListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Calendar size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📅</Text>
                     <Text style={styles.detail}>{item.date}</Text>
                 </View>
                 <View style={styles.row}>
-                    <Truck size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>🚚</Text>
                     <Text style={styles.detail}>Vehicle No: {item.vehicle?.vehicleNumber || item.vehicleId}</Text>
                 </View>
                 {item.vendor && <Text style={styles.detail}>Vendor: {item.vendor}</Text>}
@@ -70,9 +70,8 @@ export const MaintenanceListScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>Maintenance</Text>
                 <Button
-                    title="Add Record"
+                    title="Add Record ➕"
                     onPress={() => navigation.navigate('CreateMaintenance')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>

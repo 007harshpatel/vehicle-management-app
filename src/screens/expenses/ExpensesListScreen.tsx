@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getExpenses, Expense } from '../../api/expenses';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Tag, Calendar, Wallet, CreditCard, Truck, User } from 'lucide-react-native';
+
 
 export const ExpensesListScreen = () => {
     const navigation = useNavigation<any>();
@@ -41,12 +41,12 @@ export const ExpensesListScreen = () => {
                 onPress={() => navigation.navigate('CreateExpense', { expense: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#F44336' + '20' }]}>
-                    <Wallet size={24} color="#F44336" />
+                    <Text style={{ fontSize: 24 }}>💸</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.amount}>₹{item.amount}</Text>
                     <View style={styles.row}>
-                        <Tag size={12} color={Colors.textLight} style={{ marginRight: 4 }} />
+                        <Text style={{ fontSize: 12, marginRight: 4 }}>🏷️</Text>
                         <Text style={styles.subtitle}>{item.category}</Text>
                     </View>
                 </View>
@@ -56,34 +56,34 @@ export const ExpensesListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Calendar size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📅</Text>
                     <Text style={styles.detail}>{item.date}</Text>
                 </View>
                 <View style={styles.row}>
-                    <CreditCard size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>💳</Text>
                     <Text style={styles.detail}>{item.paymentMode}</Text>
                 </View>
                 {item.vehicle && (
                     <View style={styles.row}>
-                        <Truck size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>🚚</Text>
                         <Text style={styles.detail}>{item.vehicle.vehicleNumber}</Text>
                     </View>
                 )}
                 {!item.vehicle && item.vehicleId && (
                     <View style={styles.row}>
-                        <Truck size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>🚚</Text>
                         <Text style={styles.detail}>Vehicle ID: {item.vehicleId}</Text>
                     </View>
                 )}
                 {item.driver && (
                     <View style={styles.row}>
-                        <User size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>👤</Text>
                         <Text style={styles.detail}>{item.driver.name}</Text>
                     </View>
                 )}
                 {!item.driver && item.driverId && (
                     <View style={styles.row}>
-                        <User size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>👤</Text>
                         <Text style={styles.detail}>Driver ID: {item.driverId}</Text>
                     </View>
                 )}
@@ -96,9 +96,8 @@ export const ExpensesListScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>Expenses</Text>
                 <Button
-                    title="Add Expense"
+                    title="Add Expense ➕"
                     onPress={() => navigation.navigate('CreateExpense')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>

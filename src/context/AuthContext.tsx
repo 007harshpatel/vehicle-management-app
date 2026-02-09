@@ -15,6 +15,7 @@ interface AuthContextType {
     user: User | null;
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
+    signup: (userData: any) => Promise<void>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
 }
@@ -65,6 +66,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const signup = async (userData: any) => {
+        try {
+            // Option 1: Just create user, then user must login manually
+            // Option 2: Create user and auto-login if backend returned token (it doesn't currently)
+            // Backend `create` returns user object usually.
+            // So we just create user.
+            const data = await import('../api/auth').then(m => m.signup(userData));
+            return data;
+        } catch (error) {
+            console.error('Signup error', error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         setAccessToken(null);
         setUser(null);
@@ -79,6 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 user,
                 isLoading,
                 login,
+                signup,
                 logout,
                 isAuthenticated: !!accessToken,
             }}

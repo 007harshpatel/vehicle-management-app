@@ -3,7 +3,6 @@ import { View, StyleSheet, StatusBar, Text, TouchableOpacity, Platform, Keyboard
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
 import { Colors, Spacing } from '../constants/theme';
 
 interface ScreenContainerProps {
@@ -35,7 +34,7 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
                     <View style={styles.headerContent}>
                         {showBack && navigation.canGoBack() ? (
                             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                                <ArrowLeft color="white" size={24} />
+                                <Text style={{ color: 'white', fontSize: 24, fontWeight: 'bold' }}>{'<'}</Text>
                             </TouchableOpacity>
                         ) : (
                             <View style={{ width: 40 }} /> // Spacer

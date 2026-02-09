@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getVehicles, Vehicle } from '../../api/vehicles';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Truck, Hash, Box, Info } from 'lucide-react-native';
+
 
 export const VehiclesListScreen = () => {
     const navigation = useNavigation<any>();
@@ -41,11 +41,12 @@ export const VehiclesListScreen = () => {
                 onPress={() => navigation.navigate('CreateVehicle', { vehicle: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#FF9800' + '20' }]}>
-                    <Truck size={24} color="#FF9800" />
+                    <Text style={{ fontSize: 24 }}>🚛</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.number}>{item.vehicleNumber}</Text>
                     <Text style={styles.subtitle}>{item.vehicleType}</Text>
+                    {item.driver && <Text style={styles.subtitle}>Driver: {item.driver.name}</Text>}
                 </View>
             </TouchableOpacity>
 
@@ -53,12 +54,12 @@ export const VehiclesListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Box size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📦</Text>
                     <Text style={styles.detail}>Capacity: {item.capacity} tons</Text>
                 </View>
                 {item.status && (
                     <View style={styles.row}>
-                        <Info size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>ℹ️</Text>
                         <Text style={styles.detail}>{item.status}</Text>
                     </View>
                 )}
@@ -71,9 +72,8 @@ export const VehiclesListScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>Vehicles</Text>
                 <Button
-                    title="Add Vehicle"
+                    title="Add Vehicle ➕"
                     onPress={() => navigation.navigate('CreateVehicle')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>

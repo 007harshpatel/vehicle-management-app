@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
+import { FlatList, StyleSheet, Text, View, ActivityIndicator, Alert, TouchableOpacity, Image } from 'react-native';
+import { BASE_URL } from '../../api/client';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Card } from '../../components/Card';
@@ -7,8 +8,8 @@ import { Button } from '../../components/Button';
 import { getDrivers, Driver } from '../../api/drivers';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, UserCog, Phone, FileText, CheckCircle, AlertCircle, Pencil } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+
+
 
 export const DriversListScreen = () => {
     const navigation = useNavigation<any>();
@@ -41,15 +42,19 @@ export const DriversListScreen = () => {
                 style={styles.cardHeader}
                 onPress={() => navigation.navigate('CreateDriver', { driver: item })}
             >
-                <View style={[styles.iconContainer, { backgroundColor: '#2196F3' + '20' }]}>
-                    <UserCog size={24} color="#2196F3" />
+                <View style={[styles.iconContainer, { backgroundColor: item.photo ? 'transparent' : '#2196F3' + '20' }]}>
+                    {item.photo ? (
+                        <Image source={{ uri: `${BASE_URL}/uploads/${item.photo}` }} style={styles.driverImage} />
+                    ) : (
+                        <Text style={{ fontSize: 24 }}>👨‍🔧</Text>
+                    )}
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.name}>{item.name}</Text>
                     <View style={styles.row}>
                         {item.status ? (
                             <>
-                                <CheckCircle size={12} color={Colors.success} style={{ marginRight: 4 }} />
+                                <Text style={{ fontSize: 12, marginRight: 4, color: Colors.success }}>✅</Text>
                                 <Text style={[styles.subtitle, { color: Colors.success }]}>{item.status}</Text>
                             </>
                         ) : (
@@ -63,11 +68,11 @@ export const DriversListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Phone size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📞</Text>
                     <Text style={styles.detail}>{item.mobile}</Text>
                 </View>
                 <View style={styles.row}>
-                    <FileText size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📄</Text>
                     <Text style={styles.detail}>{item.licenseNumber}</Text>
                 </View>
             </View>
@@ -79,9 +84,8 @@ export const DriversListScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>Drivers</Text>
                 <Button
-                    title="Add Driver"
+                    title="Add Driver ➕"
                     onPress={() => navigation.navigate('CreateDriver')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>
@@ -138,6 +142,12 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: Spacing.sm,
+        overflow: 'hidden',
+    },
+    driverImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
     },
     name: {
         fontSize: 18,

@@ -6,7 +6,7 @@ import { TripsListScreen } from '../screens/trips/TripsListScreen';
 import { ExpensesListScreen } from '../screens/expenses/ExpensesListScreen';
 import { ProfileScreen } from '../screens/users/ProfileScreen';
 import { Colors } from '../constants/theme';
-import { Home, Map, Wallet, User } from 'lucide-react-native';
+import { Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const Tab = createBottomTabNavigator();
@@ -30,14 +30,14 @@ export const TabNavigator = () => {
                 name="Home"
                 component={DashboardScreen}
                 options={{
-                    tabBarIcon: ({ color }) => <Home color={color} size={24} />,
+                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>🏠</Text>,
                 }}
             />
             <Tab.Screen
                 name="Trips" // Renamed from Orders
                 component={TripsListScreen}
                 options={{
-                    tabBarIcon: ({ color }) => <Map color={color} size={24} />,
+                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>🚚</Text>,
                 }}
             />
 
@@ -47,7 +47,7 @@ export const TabNavigator = () => {
                 name="Expenses" // Renamed from Offers
                 component={ExpensesListScreen}
                 options={{
-                    tabBarIcon: ({ color }) => <Wallet color={color} size={24} />,
+                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>💸</Text>,
                 }}
             />
 
@@ -55,7 +55,7 @@ export const TabNavigator = () => {
                 name="Profile"
                 component={ProfileScreen}
                 options={{
-                    tabBarIcon: ({ color }) => <User color={color} size={24} />,
+                    tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>👤</Text>,
                 }}
             />
         </Tab.Navigator>

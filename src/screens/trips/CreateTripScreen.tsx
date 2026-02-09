@@ -4,12 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { Camera, Image as ImageIcon, FileText, X, Download } from 'lucide-react-native';
 import { ScreenContainer } from '../../components/ScreenContainer';
 import { Input } from '../../components/Input';
 import { DatePickerInput } from '../../components/DatePickerInput';
 import { Button } from '../../components/Button';
-import { createTrip, updateTrip, Trip, TripDetail } from '../../api/trips';
+import { createTrip, updateTrip, Trip } from '../../api/trips';
 import { getVehicles, Vehicle } from '../../api/vehicles';
 import { getDrivers, Driver } from '../../api/drivers';
 import { BASE_URL } from '../../api/client';
@@ -26,7 +25,9 @@ export const CreateTripScreen = ({ route }: any) => {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
 
-    // Header Fields
+    // --- Form Fields ---
+
+    // 1. Trip Basic Info
     const [driverId, setDriverId] = useState('');
     const [driverName, setDriverName] = useState('');
     const [supplyTo, setSupplyTo] = useState('');
@@ -35,52 +36,102 @@ export const CreateTripScreen = ({ route }: any) => {
     const [refNo, setRefNo] = useState('');
     const [panNo, setPanNo] = useState('');
     const [docNo, setDocNo] = useState('');
-    const [notes, setNotes] = useState('');
-    const [tripStatus, setTripStatus] = useState('Planned');
+    const [notes, setNotes] = useState(''); // General Notes
+    const [tripStatus, setTripStatus] = useState('In Progress');
+    const [dealAmount, setDealAmount] = useState('');
+
+    // 2. Logistics Details
+    const [momentDate, setMomentDate] = useState(new Date().toISOString().split('T')[0]);
+    const [vehicleId, setVehicleId] = useState('');
+    const [vehicleNumber, setVehicleNumber] = useState('');
+    const [containerNo, setContainerNo] = useState('');
+    const [fromLocation, setFromLocation] = useState('');
+    const [viaLocation, setViaLocation] = useState('');
+    const [toLocation, setToLocation] = useState('');
+    const [weight, setWeight] = useState('');
+
+    // 3. Our Cost (Aapne Kharcho)
+    const [diesel, setDiesel] = useState('');
+    const [toll, setToll] = useState('');
+    const [driverExpense, setDriverExpense] = useState('');
+    const [biltyCharge, setBiltyCharge] = useState('');
+    const [extraMoney, setExtraMoney] = useState(''); // Label: Extra Charge
+    const [ourCostNote, setOurCostNote] = useState('');
+
+    // 4. Party Bill (Party pase thi levana)
+    const [rate, setRate] = useState('');
+    const [frs, setFrs] = useState('');
+    const [loLo, setLoLo] = useState('');
+    const [extraCharge, setExtraCharge] = useState(''); // Label: Extra Money
+    const [weighBridge, setWeighBridge] = useState('');
+    const [detention, setDetention] = useState('');
+    const [partyBillNote, setPartyBillNote] = useState('');
+    const [transporter, setTransporter] = useState('');
+
+    // 5. Financial Totals
+    const [totalOurCost, setTotalOurCost] = useState(0);
+    const [totalPartyBill, setTotalPartyBill] = useState(0);
+
+    // Legacy/Standard Financials
+    const [lessAdvance, setLessAdvance] = useState('');
+    // totalAmount is essentially Party Bill Total
+    const [receivedDate, setReceivedDate] = useState<string | undefined>(undefined);
+    const [receivedAmount, setReceivedAmount] = useState('');
+    const [pendingAmount, setPendingAmount] = useState(0);
+    const [totalProfit, setTotalProfit] = useState(0);
 
     // File
     const [billFile, setBillFile] = useState<any>(null);
     const [existingFile, setExistingFile] = useState<string | null>(null);
     const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
-    // Financials
-    const [subTotal, setSubTotal] = useState(0);
-    const [lessAdvance, setLessAdvance] = useState('');
-    const [totalAmount, setTotalAmount] = useState(0);
-
-    // Details - State
-    const [details, setDetails] = useState<TripDetail[]>([]);
-    const [detailModalVisible, setDetailModalVisible] = useState(false);
-    const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(null);
-
-    // Detail Form State
-    const [dId, setDId] = useState<number | undefined>(undefined);
-    const [dMomentDate, setDMomentDate] = useState(new Date().toISOString().split('T')[0]);
-    const [dVehicleId, setDVehicleId] = useState('');
-    const [dContainerNo, setDContainerNo] = useState('');
-    const [dFromLocation, setDFromLocation] = useState('');
-    const [dViaLocation, setDViaLocation] = useState('');
-    const [dToLocation, setDToLocation] = useState('');
-    const [dWeight, setDWeight] = useState('');
-    const [dFrs, setDFrs] = useState('');
-    const [dLoLo, setDLoLo] = useState('');
-    const [dDetention, setDDetention] = useState('');
-    const [dAmount, setDAmount] = useState('');
-
     useEffect(() => {
         if (editingTrip) {
-            setDriverId(editingTrip.driverId.toString());
+            setDriverId(editingTrip.driverId ? editingTrip.driverId.toString() : '');
             setDriverName(editingTrip.driverName);
             setSupplyTo(editingTrip.supplyTo);
             setBillNo(editingTrip.billNo);
-            setStartDatetime(editingTrip.startDatetime.split('T')[0]);
-            setRefNo(editingTrip.refNo);
-            setPanNo(editingTrip.panNo);
-            setDocNo(editingTrip.docNo);
+            setStartDatetime(editingTrip.startDatetime ? editingTrip.startDatetime.split('T')[0] : new Date().toISOString().split('T')[0]);
+            setRefNo(editingTrip.refNo || '');
+            setPanNo(editingTrip.panNo || '');
+            setDocNo(editingTrip.docNo || '');
             setNotes(editingTrip.notes || '');
-            setTripStatus(editingTrip.tripStatus || 'Planned');
-            setLessAdvance(editingTrip.lessAdvance.toString());
-            setDetails(editingTrip.details || []);
+            setTripStatus(editingTrip.tripStatus || 'In Progress');
+            setDealAmount(editingTrip.dealAmount ? editingTrip.dealAmount.toString() : '');
+
+            // Logistics
+            setMomentDate(editingTrip.momentDate ? editingTrip.momentDate.split('T')[0] : new Date().toISOString().split('T')[0]);
+            setVehicleId(editingTrip.vehicleId ? editingTrip.vehicleId.toString() : '');
+            setVehicleNumber(editingTrip.vehicleNumber || '');
+            setContainerNo(editingTrip.containerNo || '');
+            setFromLocation(editingTrip.fromLocation || '');
+            setViaLocation(editingTrip.viaLocation || '');
+            setToLocation(editingTrip.toLocation || '');
+            setWeight(editingTrip.weight ? editingTrip.weight.toString() : '');
+
+            // Our Cost
+            setDiesel(editingTrip.diesel ? editingTrip.diesel.toString() : '');
+            setToll(editingTrip.toll ? editingTrip.toll.toString() : '');
+            setDriverExpense(editingTrip.driverExpense ? editingTrip.driverExpense.toString() : '');
+            setBiltyCharge(editingTrip.biltyCharge ? editingTrip.biltyCharge.toString() : '');
+            setExtraMoney(editingTrip.extraMoney ? editingTrip.extraMoney.toString() : ''); // Mapped to Cost Extra
+            setOurCostNote(editingTrip.ourCostNote || '');
+
+            // Party Bill
+            setRate(editingTrip.rate ? editingTrip.rate.toString() : '');
+            setFrs(editingTrip.frs ? editingTrip.frs.toString() : '');
+            setLoLo(editingTrip.loLo ? editingTrip.loLo.toString() : '');
+            setExtraCharge(editingTrip.extraCharge ? editingTrip.extraCharge.toString() : ''); // Mapped to Bill Extra
+            setWeighBridge(editingTrip.weighBridge ? editingTrip.weighBridge.toString() : '');
+            setDetention(editingTrip.detention ? editingTrip.detention.toString() : '');
+            setPartyBillNote(editingTrip.partyBillNote || '');
+            setTransporter(editingTrip.transporter || '');
+
+            // Financials
+            setLessAdvance(editingTrip.lessAdvance ? editingTrip.lessAdvance.toString() : '');
+            setReceivedDate(editingTrip.receivedDate ? editingTrip.receivedDate.split('T')[0] : undefined);
+            setReceivedAmount(editingTrip.receivedAmount ? editingTrip.receivedAmount.toString() : '');
+
             if (editingTrip.bill_file) {
                 setExistingFile(editingTrip.bill_file);
             }
@@ -91,12 +142,36 @@ export const CreateTripScreen = ({ route }: any) => {
         fetchData();
     }, []);
 
+    // Auto-calculate Financials
     useEffect(() => {
-        const sub = details.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-        setSubTotal(sub);
-        const total = sub - (Number(lessAdvance) || 0);
-        setTotalAmount(total);
-    }, [details, lessAdvance]);
+        // 1. Calculate Our Cost (Aapne Kharcho)
+        // Diesel + Toll + Driver Exp + Bilty + Extra Cost (DB extraMoney)
+        const cost = (Number(diesel) || 0) +
+            (Number(toll) || 0) +
+            (Number(driverExpense) || 0) +
+            (Number(biltyCharge) || 0) +
+            (Number(extraMoney) || 0);
+        setTotalOurCost(cost);
+
+        // 2. Calculate Party Bill (Party pase thi levana)
+        // Rate + FRS + LoLo + Extra Bill (DB extraCharge) + Waybridge + Detention
+        const bill = (Number(rate) || 0) +
+            (Number(frs) || 0) +
+            (Number(loLo) || 0) +
+            (Number(extraCharge) || 0) +
+            (Number(weighBridge) || 0) +
+            (Number(detention) || 0);
+        setTotalPartyBill(bill);
+
+        // 3. Profit = Deal Amount + Bill - Cost
+        const deal = Number(dealAmount) || 0;
+        setTotalProfit(deal + bill - cost);
+
+        // 4. Pending = (Deal Amount + Bill) - Received
+        const received = Number(receivedAmount) || 0;
+        setPendingAmount((deal + bill) - received);
+
+    }, [diesel, toll, driverExpense, biltyCharge, extraMoney, rate, frs, loLo, extraCharge, weighBridge, detention, receivedAmount, dealAmount]);
 
     const fetchData = async () => {
         try {
@@ -120,159 +195,61 @@ export const CreateTripScreen = ({ route }: any) => {
         }
     };
 
-    const handleUploadPress = () => {
-        setUploadModalVisible(true);
+    const handleVehicleChange = (itemValue: string) => {
+        setVehicleId(itemValue);
+        const selectedVehicle = vehicles.find(v => v.id.toString() === itemValue);
+        if (selectedVehicle) {
+            setVehicleNumber(selectedVehicle.vehicleNumber);
+            // Auto-select driver if assigned to vehicle
+            if (selectedVehicle.driverId) {
+                setDriverId(selectedVehicle.driverId.toString());
+            }
+        }
     };
+
+    const handleUploadPress = () => setUploadModalVisible(true);
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images'],
-            allowsEditing: false,
-            aspect: [4, 3],
-            quality: 0.8,
+            mediaTypes: ['images'], allowsEditing: false, aspect: [4, 3], quality: 0.8,
         });
-
         if (!result.canceled) {
             const asset = result.assets[0];
-            setBillFile({
-                uri: asset.uri,
-                type: asset.mimeType || 'image/jpeg',
-                name: asset.fileName || 'bill.jpg',
-            });
+            setBillFile({ uri: asset.uri, type: asset.mimeType || 'image/jpeg', name: asset.fileName || 'bill.jpg' });
             setUploadModalVisible(false);
         }
     };
 
     const pickDocument = async () => {
-        const result = await DocumentPicker.getDocumentAsync({
-            type: 'application/pdf',
-            copyToCacheDirectory: true,
-        });
-
+        const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
         if (!result.canceled) {
             const asset = result.assets[0];
-            setBillFile({
-                uri: asset.uri,
-                type: asset.mimeType || 'application/pdf',
-                name: asset.name || 'bill.pdf',
-            });
+            setBillFile({ uri: asset.uri, type: asset.mimeType || 'application/pdf', name: asset.name || 'bill.pdf' });
             setUploadModalVisible(false);
         }
     };
 
     const takePhoto = async () => {
         const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-        if (permissionResult.granted === false) {
-            showToast("Permission to access camera is required!", 'error');
-            return;
-        }
-
-        const result = await ImagePicker.launchCameraAsync({
-            allowsEditing: false,
-            aspect: [4, 3],
-            quality: 0.8,
-        });
-
+        if (permissionResult.granted === false) return showToast("Permission to access camera is required!", 'error');
+        const result = await ImagePicker.launchCameraAsync({ allowsEditing: false, aspect: [4, 3], quality: 0.8 });
         if (!result.canceled) {
             const asset = result.assets[0];
-            setBillFile({
-                uri: asset.uri,
-                type: asset.mimeType || 'image/jpeg',
-                name: asset.fileName || 'camera_capture.jpg',
-            });
+            setBillFile({ uri: asset.uri, type: asset.mimeType || 'image/jpeg', name: asset.fileName || 'camera_capture.jpg' });
             setUploadModalVisible(false);
         }
     }
 
-    const openDetailModal = (index?: number) => {
-        if (index !== undefined && index >= 0) {
-            const detail = details[index];
-            setEditingDetailIndex(index);
-            setDId(detail.id);
-            setDMomentDate(detail.momentDate.split('T')[0]);
-            setDVehicleId(detail.vehicleId.toString());
-            setDContainerNo(detail.containerNo);
-            setDFromLocation(detail.fromLocation);
-            setDViaLocation(detail.viaLocation || '');
-            setDToLocation(detail.toLocation);
-            setDWeight(detail.weight.toString());
-            setDFrs(detail.frs.toString());
-            setDLoLo(detail.loLo.toString());
-            setDDetention(detail.detention.toString());
-            setDAmount(detail.amount.toString());
-        } else {
-            setEditingDetailIndex(null);
-            resetDetailForm();
-        }
-        setDetailModalVisible(true);
-    };
-
-    const saveDetail = () => {
-        if (!dVehicleId || !dFromLocation || !dToLocation || !dAmount) {
-            showToast('Vehicle, Locations, and Amount are required', 'warning');
-            return;
-        }
-
-        const vehicle = vehicles.find(v => v.id.toString() === dVehicleId);
-        const detailData: TripDetail = {
-            id: dId,
-            momentDate: dMomentDate,
-            vehicleId: Number(dVehicleId),
-            vehicleNumber: vehicle ? vehicle.vehicleNumber : '',
-            containerNo: dContainerNo,
-            fromLocation: dFromLocation,
-            viaLocation: dViaLocation,
-            toLocation: dToLocation,
-            weight: Number(dWeight) || 0,
-            frs: Number(dFrs) || 0,
-            loLo: Number(dLoLo) || 0,
-            detention: Number(dDetention) || 0,
-            amount: Number(dAmount) || 0
-        };
-
-        if (editingDetailIndex !== null) {
-            const updatedDetails = [...details];
-            updatedDetails[editingDetailIndex] = detailData;
-            setDetails(updatedDetails);
-        } else {
-            setDetails([...details, detailData]);
-        }
-
-        setDetailModalVisible(false);
-        resetDetailForm();
-    };
-
-    const resetDetailForm = () => {
-        setDId(undefined);
-        setDVehicleId('');
-        setDContainerNo('');
-        setDFromLocation('');
-        setDViaLocation('');
-        setDToLocation('');
-        setDWeight('');
-        setDFrs('');
-        setDLoLo('');
-        setDDetention('');
-        setDAmount('');
-        setDMomentDate(new Date().toISOString().split('T')[0]);
-        setEditingDetailIndex(null);
-    };
-
-    const removeDetail = (index: number) => {
-        const newDetails = [...details];
-        newDetails.splice(index, 1);
-        setDetails(newDetails);
-    };
-
     const handleSubmit = async () => {
-        if (!driverId || !billNo || !startDatetime || details.length === 0) {
-            showToast('Driver, Bill No, Date, and at least one Trip Detail are required', 'warning');
+        if (!driverId || !billNo || !startDatetime || !vehicleId || !fromLocation || !toLocation) {
+            showToast('Please fill all required fields (*)', 'warning');
             return;
         }
 
         setLoading(true);
 
         const formData = new FormData();
+        // Basic
         formData.append('driverId', driverId);
         formData.append('driverName', driverName);
         formData.append('supplyTo', supplyTo);
@@ -281,13 +258,48 @@ export const CreateTripScreen = ({ route }: any) => {
         formData.append('refNo', refNo);
         formData.append('panNo', panNo);
         formData.append('docNo', docNo);
-        formData.append('subTotal', subTotal.toString());
-        formData.append('lessAdvance', (Number(lessAdvance) || 0).toString());
-        formData.append('totalAmount', totalAmount.toString());
-        if (notes) formData.append('notes', notes);
-        if (tripStatus) formData.append('tripStatus', tripStatus);
+        formData.append('notes', notes);
+        formData.append('tripStatus', tripStatus);
+        formData.append('dealAmount', dealAmount || '0');
 
-        formData.append('details', JSON.stringify(details));
+        // Logistics
+        formData.append('momentDate', momentDate);
+        formData.append('vehicleId', vehicleId);
+        formData.append('vehicleNumber', vehicleNumber);
+        formData.append('containerNo', containerNo);
+        formData.append('fromLocation', fromLocation);
+        formData.append('viaLocation', viaLocation);
+        formData.append('toLocation', toLocation);
+        formData.append('weight', weight || '0');
+
+        // Our Cost (Mapped Fields)
+        formData.append('diesel', diesel || '0');
+        formData.append('toll', toll || '0');
+        formData.append('driverExpense', driverExpense || '0');
+        formData.append('biltyCharge', biltyCharge || '0');
+        formData.append('extraMoney', extraMoney || '0'); // UI: Extra Charge (Cost) -> DB: extraMoney
+        formData.append('ourCostNote', ourCostNote);
+
+        // Party Bill (Mapped Fields)
+        formData.append('rate', rate || '0');
+        formData.append('frs', frs || '0');
+        formData.append('loLo', loLo || '0');
+        formData.append('extraCharge', extraCharge || '0'); // UI: Extra Money (Bill) -> DB: extraCharge
+        formData.append('weighBridge', weighBridge || '0');
+        formData.append('detention', detention || '0');
+        formData.append('partyBillNote', partyBillNote);
+        formData.append('transporter', transporter);
+
+        // Financials
+        // Inherited fields logic
+        formData.append('subTotal', totalPartyBill.toString()); // Assuming SubTotal = Total Bill
+        formData.append('totalAmount', totalPartyBill.toString()); // Total Bill
+        formData.append('lessAdvance', (Number(lessAdvance) || 0).toString());
+
+        if (receivedDate) formData.append('receivedDate', receivedDate);
+        formData.append('receivedAmount', (Number(receivedAmount) || 0).toString());
+        formData.append('pendingAmount', pendingAmount.toString());
+        formData.append('totalProfit', totalProfit.toString());
 
         if (billFile) {
             formData.append('billFile', {
@@ -308,185 +320,213 @@ export const CreateTripScreen = ({ route }: any) => {
             navigation.goBack();
         } catch (error: any) {
             console.error(error);
-            const errorMessage = error.response?.data?.message;
-            const toastMessage = Array.isArray(errorMessage)
-                ? errorMessage[0]
-                : (errorMessage || 'Failed to save trip');
-            showToast(toastMessage, 'error');
+            const errorMessage = error.response?.data?.message || 'Failed to save trip';
+            showToast(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage, 'error');
         } finally {
             setLoading(false);
         }
     };
 
+    const SectionHeader = ({ title, total }: { title: string, total?: number }) => (
+        <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+            {total !== undefined && (
+                <View style={styles.totalBadge}>
+                    <Text style={styles.totalBadgeText}>₹{total}</Text>
+                </View>
+            )}
+        </View>
+    );
+
     return (
         <ScreenContainer title={editingTrip ? "Edit Trip" : "Create Trip"}>
             <ScrollView contentContainerStyle={styles.content}>
-                <Text style={styles.sectionTitle}>Trip Information</Text>
 
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Driver *</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={driverId}
-                            onValueChange={handleDriverChange}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Select Driver" value="" />
-                            {drivers.map((d) => (
-                                <Picker.Item key={d.id} label={d.name} value={d.id.toString()} />
-                            ))}
-                        </Picker>
+                {/* --- Basic Info --- */}
+                <SectionHeader title="Basic Info" />
+                <View style={styles.card}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Driver *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker selectedValue={driverId} onValueChange={handleDriverChange} style={styles.picker}>
+                                <Picker.Item label="Select Driver" value="" />
+                                {drivers.map((d) => <Picker.Item key={d.id} label={d.name} value={d.id.toString()} />)}
+                            </Picker>
+                        </View>
+                    </View>
+                    <DatePickerInput label="Date *" value={startDatetime} onChange={(d) => setStartDatetime(d.toISOString().split('T')[0])} />
+                    <Input label="Bill No *" value={billNo} onChangeText={setBillNo} />
+                    <Input label="Supply To" value={supplyTo} onChangeText={setSupplyTo} />
+                    <Input label="Deal Amount" value={dealAmount} onChangeText={setDealAmount} keyboardType="numeric" />
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Trip Status</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker selectedValue={tripStatus} onValueChange={setTripStatus} style={styles.picker}>
+                                <Picker.Item label="In Progress" value="In Progress" />
+                                <Picker.Item label="Complete" value="Complete" />
+                                <Picker.Item label="Finished" value="Finished" />
+                            </Picker>
+                        </View>
                     </View>
                 </View>
 
-                <Input label="Driver Name" value={driverName} onChangeText={setDriverName} />
-                <Input label="Supply To" value={supplyTo} onChangeText={setSupplyTo} />
-                <Input label="Bill No *" value={billNo} onChangeText={setBillNo} />
-                <DatePickerInput label="Date *" value={startDatetime} onChange={(d) => setStartDatetime(d.toISOString().split('T')[0])} />
-                <Input label="Ref No" value={refNo} onChangeText={setRefNo} />
-                <Input label="PAN No" value={panNo} onChangeText={setPanNo} />
-                <Input label="Doc No" value={docNo} onChangeText={setDocNo} />
+                {/* --- Vehicle & Route --- */}
+                <SectionHeader title="Vehicle & Route" />
+                <View style={styles.card}>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Vehicle *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker selectedValue={vehicleId} onValueChange={handleVehicleChange} style={styles.picker}>
+                                <Picker.Item label="Select Vehicle" value="" />
+                                {vehicles.map((v) => <Picker.Item key={v.id} label={v.vehicleNumber} value={v.id.toString()} />)}
+                            </Picker>
+                        </View>
+                    </View>
 
-                <Text style={styles.label}>Bill File</Text>
+                    {/* Route Timeline UI */}
+                    <View style={styles.routeContainer}>
+                        <View style={styles.routeRow}>
+                            <View style={styles.timelineContainer}>
+                                <View style={[styles.dot, { backgroundColor: Colors.success }]} />
+                                <View style={styles.line} />
+                            </View>
+                            <View style={styles.routeInput}>
+                                <Input label="From Location" value={fromLocation} onChangeText={setFromLocation} placeholder="Start Point" />
+                            </View>
+                        </View>
+
+                        <View style={styles.routeRow}>
+                            <View style={styles.timelineContainer}>
+                                <View style={[styles.dot, { backgroundColor: Colors.warning }]} />
+                                <View style={styles.line} />
+                            </View>
+                            <View style={styles.routeInput}>
+                                <Input label="Via (Optional)" value={viaLocation} onChangeText={setViaLocation} placeholder="Stopover" />
+                            </View>
+                        </View>
+
+                        <View style={styles.routeRow}>
+                            <View style={styles.timelineContainer}>
+                                <View style={[styles.dot, { backgroundColor: Colors.error }]} />
+                            </View>
+                            <View style={styles.routeInput}>
+                                <Input label="To Location" value={toLocation} onChangeText={setToLocation} placeholder="Destination" />
+                            </View>
+                        </View>
+                    </View>
+                    <Input label="Weight (Ton)" value={weight} onChangeText={setWeight} keyboardType="numeric" />
+                </View>
+
+                {/* --- Our Cost (Aapne Kharcho) --- */}
+                <SectionHeader title="Our Cost (Expenses)" total={totalOurCost} />
+                <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: Colors.error }]}>
+                    <View style={styles.row}>
+                        <View style={styles.col}><Input label="Diesel" value={diesel} onChangeText={setDiesel} keyboardType="numeric" /></View>
+                        <View style={styles.col}><Input label="Toll" value={toll} onChangeText={setToll} keyboardType="numeric" /></View>
+                    </View>
+                    <View style={styles.row}>
+                        <View style={styles.col}><Input label="Driver Exp" value={driverExpense} onChangeText={setDriverExpense} keyboardType="numeric" /></View>
+                        <View style={styles.col}><Input label="Bilty" value={biltyCharge} onChangeText={setBiltyCharge} keyboardType="numeric" /></View>
+                    </View>
+                    <Input label="Extra Charge" value={extraMoney} onChangeText={setExtraMoney} keyboardType="numeric" placeholder="(e.g. Penalty)" />
+                    <Input label="Note" value={ourCostNote} onChangeText={setOurCostNote} multiline numberOfLines={2} />
+                </View>
+
+
+                {/* --- Party Bill (Receivables) --- */}
+                <SectionHeader title="Party Bill (Receivables)" total={totalPartyBill} />
+                <View style={[styles.card, { borderLeftWidth: 4, borderLeftColor: Colors.success }]}>
+                    <Input label="Freight Rate" value={rate} onChangeText={setRate} keyboardType="numeric" style={{ fontWeight: 'bold' }} />
+
+                    <View style={styles.row}>
+                        <View style={styles.col}><Input label="FRS" value={frs} onChangeText={setFrs} keyboardType="numeric" /></View>
+                        <View style={styles.col}><Input label="LoLo" value={loLo} onChangeText={setLoLo} keyboardType="numeric" /></View>
+                    </View>
+
+                    <View style={styles.row}>
+                        <View style={styles.col}><Input label="Extra Money" value={extraCharge} onChangeText={setExtraCharge} keyboardType="numeric" /></View>
+                        <View style={styles.col}><Input label="Weigh Bridge" value={weighBridge} onChangeText={setWeighBridge} keyboardType="numeric" /></View>
+                    </View>
+
+                    <Input label="Detention" value={detention} onChangeText={setDetention} keyboardType="numeric" />
+                    <Input label="Note" value={partyBillNote} onChangeText={setPartyBillNote} multiline numberOfLines={2} />
+                </View>
+
+                {/* --- Financial Summary --- */}
+                <SectionHeader title="Profit & Status" />
+                <View style={styles.card}>
+                    {/* Summary Row */}
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, backgroundColor: '#F8F9FA', padding: 10, borderRadius: 8 }}>
+                        <View style={{ alignItems: 'center', flex: 1 }}>
+                            <Text style={{ fontSize: 12, color: Colors.textLight, marginBottom: 4 }}>Total Trip Value</Text>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.primary }}>
+                                ₹{(Number(dealAmount) || 0) + totalPartyBill}
+                            </Text>
+                        </View>
+                        <View style={{ width: 1, backgroundColor: Colors.border, marginHorizontal: 10 }} />
+                        <View style={{ alignItems: 'center', flex: 1 }}>
+                            <Text style={{ fontSize: 12, color: Colors.textLight, marginBottom: 4 }}>Total Profit</Text>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.success }}>
+                                ₹{totalProfit}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <Text style={{ marginTop: 5, marginBottom: 10, fontWeight: '600', color: Colors.text }}>Payment Status</Text>
+                    <View style={styles.row}>
+                        <View style={styles.col}><Input label="Received Amount" value={receivedAmount} onChangeText={setReceivedAmount} keyboardType="numeric" /></View>
+                        <View style={styles.col}>
+                            {/* Read-only Text for Pending */}
+                            <Text style={{ fontSize: 14, color: Colors.text, marginBottom: 10, fontWeight: '500' }}>Pending Amount</Text>
+                            <View style={{ borderWidth: 1, borderColor: '#FFECB3', borderRadius: BorderRadius.md, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFF8E1' }}>
+                                <Text style={{ fontSize: 16, fontWeight: 'bold', color: Colors.error }}>₹{pendingAmount}</Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* --- File Upload --- */}
+                <Text style={styles.sectionTitle}>Documents</Text>
                 <TouchableOpacity onPress={handleUploadPress} style={styles.uploadButton}>
-                    <Text style={styles.uploadButtonText}>{billFile ? "Change Bill File" : "Upload Bill"}</Text>
+                    <Text style={styles.uploadButtonText}>{billFile ? "Change Bill File" : "Upload Bill / Document"}</Text>
                 </TouchableOpacity>
 
-                {/* Show Existing File if no new file selected */}
                 {existingFile && !billFile && (
-                    <View style={styles.existingFileContainer}>
-                        <View style={styles.existingFileIcon}>
-                            <FileText size={24} color={Colors.primary} />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={styles.existingFileLabel}>Uploaded File Available</Text>
-                            <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingFile}`)}>
-                                <Text style={styles.downloadLink}>Tap to Download/View</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingFile}`)} style={styles.downloadButton}>
-                            <Download size={20} color={Colors.white} />
-                        </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingFile}`)} style={styles.existingFileContainer}>
+                        <Text style={{ fontSize: 24 }}>📄</Text>
+                        <Text style={styles.existingFileLabel}>View Uploaded File</Text>
+                    </TouchableOpacity>
                 )}
-
 
                 {billFile && (
                     <View style={styles.filePreview}>
-                        <Text style={styles.fileName}>Selected: {billFile.name}</Text>
-                        {billFile.type.includes('image') && (
-                            <Image source={{ uri: billFile.uri }} style={styles.previewImage} />
-                        )}
+                        <Text style={styles.fileName}>{billFile.name}</Text>
+                        {billFile.type.includes('image') && <Image source={{ uri: billFile.uri }} style={styles.previewImage} />}
                     </View>
                 )}
 
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Status</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker selectedValue={tripStatus} onValueChange={setTripStatus} style={styles.picker}>
-                            <Picker.Item label="Planned" value="Planned" />
-                            <Picker.Item label="In Progress" value="In Progress" />
-                            <Picker.Item label="Completed" value="Completed" />
-                            <Picker.Item label="Cancelled" value="Cancelled" />
-                        </Picker>
-                    </View>
-                </View>
-
-                <Text style={styles.sectionTitle}>Trip Details</Text>
-                {details.map((detail, index) => (
-                    <TouchableOpacity key={index} onPress={() => openDetailModal(index)}>
-                        <View style={styles.detailCard}>
-                            <View style={styles.detailCardHeader}>
-                                <Text style={styles.detailTextBold}>{detail.vehicleNumber}</Text>
-                                <TouchableOpacity onPress={(e) => { e.stopPropagation(); removeDetail(index); }}>
-                                    <Text style={styles.removeText}>Remove</Text>
-                                </TouchableOpacity>
-                            </View>
-                            <Text style={styles.detailText}>{detail.fromLocation} → {detail.toLocation}</Text>
-                            <Text style={styles.detailText}>Amt: {detail.amount}</Text>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-                <Button title="Add Detail" onPress={() => openDetailModal()} style={styles.addButton} />
-
-                <Text style={styles.sectionTitle}>Payment</Text>
-                <Input label="Sub Total" value={subTotal.toString()} editable={false} />
-                <Input label="Less Advance" value={lessAdvance} onChangeText={setLessAdvance} keyboardType="numeric" />
-                <Input label="Total Amount" value={totalAmount.toString()} editable={false} />
-                <Input label="Notes" value={notes} onChangeText={setNotes} multiline numberOfLines={3} />
-
                 <Button title={editingTrip ? "Update Trip" : "Create Trip"} onPress={handleSubmit} loading={loading} style={styles.submitButton} />
 
-                {/* Detail Modal */}
-                <Modal visible={detailModalVisible} animationType="slide" onRequestClose={() => setDetailModalVisible(false)}>
-                    <View style={styles.modalContainer}>
-                        <ScrollView contentContainerStyle={styles.modalContent}>
-                            <Text style={styles.modalTitle}>{editingDetailIndex !== null ? 'Edit Trip Detail' : 'Add Trip Detail'}</Text>
-                            <DatePickerInput label="Movement Date" value={dMomentDate} onChange={(d) => setDMomentDate(d.toISOString().split('T')[0])} />
-
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Vehicle *</Text>
-                                <View style={styles.pickerContainer}>
-                                    <Picker selectedValue={dVehicleId} onValueChange={setDVehicleId} style={styles.picker}>
-                                        <Picker.Item label="Select Vehicle" value="" />
-                                        {vehicles.map((v) => (
-                                            <Picker.Item key={v.id} label={v.vehicleNumber} value={v.id.toString()} />
-                                        ))}
-                                    </Picker>
-                                </View>
-                            </View>
-
-                            <Input label="Container No" value={dContainerNo} onChangeText={setDContainerNo} />
-                            <Input label="From Location *" value={dFromLocation} onChangeText={setDFromLocation} />
-                            <Input label="Via Location" value={dViaLocation} onChangeText={setDViaLocation} />
-                            <Input label="To Location *" value={dToLocation} onChangeText={setDToLocation} />
-                            <Input label="Weight" value={dWeight} onChangeText={setDWeight} keyboardType="numeric" />
-                            <Input label="FRS" value={dFrs} onChangeText={setDFrs} keyboardType="numeric" />
-                            <Input label="LoLo" value={dLoLo} onChangeText={setDLoLo} keyboardType="numeric" />
-                            <Input label="Detention" value={dDetention} onChangeText={setDDetention} keyboardType="numeric" />
-                            <Input label="Amount *" value={dAmount} onChangeText={setDAmount} keyboardType="numeric" />
-
-                            <Button title={editingDetailIndex !== null ? "Update" : "Add"} onPress={saveDetail} style={styles.addButton} />
-                            <Button title="Cancel" onPress={() => setDetailModalVisible(false)} style={{ backgroundColor: Colors.error, marginTop: Spacing.sm }} />
-                        </ScrollView>
-                    </View>
-                </Modal>
-
-                {/* Upload Modal - Custom Bottom Sheet Style */}
-                <Modal
-                    visible={uploadModalVisible}
-                    transparent={true}
-                    animationType="slide"
-                    onRequestClose={() => setUploadModalVisible(false)}
-                >
+                {/* Upload Modal */}
+                <Modal visible={uploadModalVisible} transparent={true} animationType="slide" onRequestClose={() => setUploadModalVisible(false)}>
                     <View style={styles.uploadModalOverlay}>
                         <View style={styles.uploadModalContainer}>
                             <View style={styles.uploadModalHeader}>
-                                <Text style={styles.uploadModalTitle}>Upload Bill</Text>
-                                <TouchableOpacity onPress={() => setUploadModalVisible(false)}>
-                                    <X color={Colors.text} size={24} />
-                                </TouchableOpacity>
+                                <Text style={styles.uploadModalTitle}>Upload</Text>
+                                <TouchableOpacity onPress={() => setUploadModalVisible(false)}><Text style={{ fontSize: 24, color: Colors.text }}>✕</Text></TouchableOpacity>
                             </View>
-
                             <View style={styles.uploadOptions}>
                                 <TouchableOpacity style={styles.uploadOption} onPress={takePhoto}>
-                                    <View style={[styles.iconContainer, { backgroundColor: '#e3f2fd' }]}>
-                                        <Camera color="#2196F3" size={28} />
-                                    </View>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#e3f2fd' }]}><Text style={{ fontSize: 28 }}>📷</Text></View>
                                     <Text style={styles.uploadOptionText}>Camera</Text>
                                 </TouchableOpacity>
-
                                 <TouchableOpacity style={styles.uploadOption} onPress={pickImage}>
-                                    <View style={[styles.iconContainer, { backgroundColor: '#e8f5e9' }]}>
-                                        <ImageIcon color="#4caf50" size={28} />
-                                    </View>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#e8f5e9' }]}><Text style={{ fontSize: 28 }}>🖼️</Text></View>
                                     <Text style={styles.uploadOptionText}>Gallery</Text>
                                 </TouchableOpacity>
-
                                 <TouchableOpacity style={styles.uploadOption} onPress={pickDocument}>
-                                    <View style={[styles.iconContainer, { backgroundColor: '#fff3e0' }]}>
-                                        <FileText color="#ff9800" size={28} />
-                                    </View>
+                                    <View style={[styles.iconContainer, { backgroundColor: '#fff3e0' }]}><Text style={{ fontSize: 28 }}>📄</Text></View>
                                     <Text style={styles.uploadOptionText}>Document</Text>
                                 </TouchableOpacity>
                             </View>
@@ -501,28 +541,64 @@ export const CreateTripScreen = ({ route }: any) => {
 
 const styles = StyleSheet.create({
     content: { paddingBottom: Spacing.xl },
-    sectionTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.primary, marginTop: Spacing.md, marginBottom: Spacing.sm },
+
+    // Header
+    sectionHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: Spacing.lg,
+        marginBottom: Spacing.sm,
+    },
+    sectionTitle: { fontSize: 18, fontWeight: 'bold', color: Colors.primary },
+    totalBadge: {
+        backgroundColor: Colors.primary,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 12,
+    },
+    totalBadgeText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
+
+    // Card
+    card: {
+        backgroundColor: Colors.white,
+        borderRadius: BorderRadius.md,
+        padding: Spacing.md,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+        elevation: 1,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+
     inputGroup: { marginBottom: Spacing.md },
     label: { fontSize: 14, color: Colors.text, marginBottom: 8, fontWeight: '500' },
     pickerContainer: { borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md, backgroundColor: Colors.white, overflow: 'hidden', height: 50, justifyContent: 'center' },
     picker: { width: '100%', color: Colors.text },
-    detailCard: { padding: Spacing.md, backgroundColor: Colors.background, borderRadius: BorderRadius.sm, marginBottom: Spacing.sm, borderWidth: 1, borderColor: Colors.border },
-    detailCardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-    detailTextBold: { fontSize: 14, fontWeight: 'bold', color: Colors.text },
-    detailText: { fontSize: 14, color: Colors.text },
-    removeText: { color: Colors.error, fontWeight: 'bold' },
-    addButton: { marginTop: Spacing.sm },
     submitButton: { marginTop: Spacing.xl },
-    modalContainer: { flex: 1, backgroundColor: Colors.white },
-    modalContent: { padding: Spacing.md },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: Spacing.md, textAlign: 'center' },
     uploadButton: { padding: 12, backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.primary, borderRadius: BorderRadius.sm, alignItems: 'center', marginBottom: Spacing.md },
     uploadButtonText: { color: Colors.primary, fontWeight: '600', fontSize: 16 },
     filePreview: { marginBottom: Spacing.md, alignItems: 'center' },
     previewImage: { width: 100, height: 100, borderRadius: BorderRadius.sm, marginTop: 5 },
     fileName: { fontSize: 12, color: Colors.textLight },
+    existingFileContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', padding: 12, borderRadius: BorderRadius.sm, marginBottom: Spacing.md, borderWidth: 1, borderColor: '#bbdefb' },
+    existingFileLabel: { fontSize: 14, fontWeight: '600', color: Colors.text, marginLeft: 10 },
 
-    // Upload Modal Styles
+    // Grid System
+    row: { flexDirection: 'row', gap: 10, marginBottom: Spacing.sm },
+    col: { flex: 1 },
+
+    // Route Timeline
+    routeContainer: { marginBottom: Spacing.md },
+    routeRow: { flexDirection: 'row', alignItems: 'flex-start' },
+    timelineContainer: { alignItems: 'center', marginRight: 10, marginTop: 35, width: 20 },
+    dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: Colors.primary },
+    line: { width: 2, height: 45, backgroundColor: '#E0E0E0', marginVertical: 4 },
+    routeInput: { flex: 1 },
+
+    // Upload Modal
     uploadModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     uploadModalContainer: { backgroundColor: Colors.white, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, minHeight: 250 },
     uploadModalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
@@ -531,11 +607,4 @@ const styles = StyleSheet.create({
     uploadOption: { alignItems: 'center' },
     iconContainer: { width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', marginBottom: 10 },
     uploadOptionText: { fontSize: 14, color: Colors.text, fontWeight: '500' },
-
-    // Existing File Styles
-    existingFileContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#e3f2fd', padding: 12, borderRadius: BorderRadius.sm, marginBottom: Spacing.md, borderWidth: 1, borderColor: '#bbdefb' },
-    existingFileIcon: { marginRight: 12 },
-    existingFileLabel: { fontSize: 14, fontWeight: '600', color: Colors.text },
-    downloadLink: { fontSize: 12, color: Colors.primary, textDecorationLine: 'underline', marginTop: 2 },
-    downloadButton: { padding: 8, backgroundColor: Colors.primary, borderRadius: 20, marginLeft: 10 },
 });

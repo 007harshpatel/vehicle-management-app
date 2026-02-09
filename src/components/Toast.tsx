@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, Animated, Dimensions, Platform } from 'react-native';
-import { Check, X, AlertCircle, Info } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -72,10 +71,10 @@ export const Toast: React.FC<ToastProps> = ({
 
     const getIcon = () => {
         switch (type) {
-            case 'success': return <Check size={20} color="white" />;
-            case 'error': return <X size={20} color="white" />;
-            case 'warning': return <AlertCircle size={20} color="white" />;
-            case 'info': return <Info size={20} color="white" />;
+            case 'success': return <Text style={{ color: 'white', fontSize: 20 }}>✅</Text>;
+            case 'error': return <Text style={{ color: 'white', fontSize: 20 }}>✕</Text>;
+            case 'warning': return <Text style={{ color: 'white', fontSize: 20 }}>⚠️</Text>;
+            case 'info': return <Text style={{ color: 'white', fontSize: 20 }}>ℹ️</Text>;
         }
     };
 

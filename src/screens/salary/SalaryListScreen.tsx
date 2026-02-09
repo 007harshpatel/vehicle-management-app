@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getSalaries, Salary } from '../../api/salary';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Banknote, Calendar, User, Phone } from 'lucide-react-native';
+
 
 export const SalaryListScreen = () => {
     const navigation = useNavigation<any>();
@@ -41,7 +41,7 @@ export const SalaryListScreen = () => {
                 onPress={() => navigation.navigate('CreateSalary', { salary: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#009688' + '20' }]}>
-                    <Banknote size={24} color="#009688" />
+                    <Text style={{ fontSize: 24 }}>💵</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.amount}>₹{item.amount}</Text>
@@ -53,24 +53,24 @@ export const SalaryListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Calendar size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📅</Text>
                     <Text style={styles.detail}>{item.salaryDate}</Text>
                 </View>
                 {item.driver && (
                     <>
                         <View style={styles.row}>
-                            <User size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                            <Text style={{ fontSize: 14, marginRight: 8 }}>👤</Text>
                             <Text style={styles.detail}>{item.driver.name}</Text>
                         </View>
                         <View style={styles.row}>
-                            <Phone size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                            <Text style={{ fontSize: 14, marginRight: 8 }}>📞</Text>
                             <Text style={styles.detail}>{item.driver.mobile}</Text>
                         </View>
                     </>
                 )}
                 {!item.driver && (
                     <View style={styles.row}>
-                        <User size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={{ fontSize: 14, marginRight: 8 }}>👤</Text>
                         <Text style={styles.detail}>Driver ID: {item.driverId}</Text>
                     </View>
                 )}
@@ -83,9 +83,8 @@ export const SalaryListScreen = () => {
             <View style={styles.header}>
                 <Text style={styles.title}>Salary Records</Text>
                 <Button
-                    title="Add Payment"
+                    title="Add Payment ➕"
                     onPress={() => navigation.navigate('CreateSalary')}
-                    icon={Plus}
                     style={styles.addButton}
                 />
             </View>

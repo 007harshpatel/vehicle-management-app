@@ -7,7 +7,7 @@ import { Button } from '../../components/Button';
 import { getTrips, Trip } from '../../api/trips';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
-import { Plus, MapPin, Calendar, Receipt, Navigation } from 'lucide-react-native';
+
 
 export const TripsListScreen = () => {
     const [trips, setTrips] = useState<Trip[]>([]);
@@ -41,16 +41,12 @@ export const TripsListScreen = () => {
                 onPress={() => navigation.navigate('CreateTrip', { trip: item })}
             >
                 <View style={[styles.iconContainer, { backgroundColor: '#9C27B0' + '20' }]}>
-                    <Receipt size={24} color="#9C27B0" />
+                    <Text style={{ fontSize: 24 }}>🧾</Text>
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.route}>{item.billNo || 'No Bill No'}</Text>
-                    <Text style={styles.subtitle}>{item.driverName || 'Unknown Driver'} | {item.supplyTo || 'Unknown Party'}</Text>
-                </View>
-                <View>
-                    <Text style={[styles.subtitle, { color: item.tripStatus === 'Completed' ? Colors.success : Colors.textLight }]}>
-                        {item.tripStatus || 'In Progress'}
-                    </Text>
+                    <Text style={styles.subtitle}>{item.vehicleNumber || 'No Vehicle'} | {(item as any).driver?.name || item.driverName || 'Unknown Driver'}</Text>
+                    <Text style={styles.subtitle}>{item.supplyTo || 'Unknown Party'}</Text>
                 </View>
             </TouchableOpacity>
 
@@ -58,17 +54,45 @@ export const TripsListScreen = () => {
 
             <View style={styles.details}>
                 <View style={styles.row}>
-                    <Calendar size={14} color={Colors.textLight} style={{ marginRight: 8 }} />
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📅</Text>
                     <Text style={styles.detail}>{item.startDatetime ? item.startDatetime.split('T')[0] : ''}</Text>
                 </View>
                 <View style={styles.row}>
-                    <Text style={[styles.detail, { fontWeight: 'bold' }]}>Total: ₹{item.totalAmount}</Text>
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>📍</Text>
+                    <Text style={styles.detail}>{item.fromLocation} → {item.toLocation}</Text>
                 </View>
-                <View style={styles.row}>
-                    <Text style={styles.detail}>{item.details ? `${item.details.length} Details` : '0 Details'}</Text>
+
+                <View style={[styles.divider, { marginVertical: 8 }]} />
+
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View>
+                        <Text style={{ fontSize: 12, color: Colors.textLight }}>Deal Amount</Text>
+                        <Text style={{ fontWeight: 'bold', color: Colors.primary }}>₹{item.dealAmount || 0}</Text>
+                    </View>
+                    <View>
+                        <Text style={{ fontSize: 12, color: Colors.textLight }}>Pending</Text>
+                        <Text style={{ fontWeight: 'bold', color: Colors.error }}>₹{item.pendingAmount || 0}</Text>
+                    </View>
                 </View>
             </View>
         </Card>
+    );
+
+    const [activeTab, setActiveTab] = useState('In Progress');
+
+    const filteredTrips = trips.filter(trip => {
+        // Handle potential mismatch in casing or undefined
+        const status = trip.tripStatus || 'In Progress';
+        return status === activeTab;
+    });
+
+    const renderTab = (tabName: string) => (
+        <TouchableOpacity
+            style={[styles.tab, activeTab === tabName && styles.activeTab]}
+            onPress={() => setActiveTab(tabName)}
+        >
+            <Text style={[styles.tabText, activeTab === tabName && styles.activeTabText]}>{tabName}</Text>
+        </TouchableOpacity>
     );
 
     return (
@@ -76,20 +100,26 @@ export const TripsListScreen = () => {
             title="Trips"
             rightAction={
                 <TouchableOpacity onPress={() => navigation.navigate('CreateTrip')} style={{ padding: 4 }}>
-                    <Plus color="white" size={24} />
+                    <Text style={{ fontSize: 24, color: 'white' }}>➕</Text>
                 </TouchableOpacity>
             }
         >
+            {/* Tabs */}
+            <View style={styles.tabContainer}>
+                {renderTab('In Progress')}
+                {renderTab('Complete')}
+                {renderTab('Finished')}
+            </View>
 
             {loading ? (
                 <ActivityIndicator size="large" color={Colors.primary} />
             ) : (
                 <FlatList
-                    data={trips}
+                    data={filteredTrips}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderItem}
                     contentContainerStyle={styles.list}
-                    ListEmptyComponent={<Text style={styles.emptyText}>No trips found</Text>}
+                    ListEmptyComponent={<Text style={styles.emptyText}>No {activeTab.toLowerCase()} trips found</Text>}
                 />
             )}
         </ScreenContainer>
@@ -175,5 +205,29 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: Colors.gray,
         marginTop: Spacing.xl,
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        marginBottom: Spacing.md,
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        padding: 4,
+    },
+    tab: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 6,
+    },
+    activeTab: {
+        backgroundColor: Colors.primary,
+    },
+    tabText: {
+        color: Colors.text,
+        fontWeight: '600',
+    },
+    activeTabText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });

@@ -9,30 +9,45 @@ import { useAuth } from '../../context/AuthContext';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
 
-export const LoginScreen = () => {
-    const navigation = useNavigation();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const { login } = useAuth();
+export const SignupScreen = () => {
+    const navigation = useNavigation<any>();
+    const { signup, login } = useAuth();
     const { showToast } = useToast();
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            showToast('Please enter both email and password', 'warning');
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [password, setPassword] = useState('');
+    const [businessName, setBusinessName] = useState('');
+    const [gstNumber, setGstNumber] = useState('');
+
+    const [loading, setLoading] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+    const handleSignup = async () => {
+        if (!name || !email || !password || !mobile) {
+            showToast('Please fill all required fields', 'warning');
             return;
         }
 
         setLoading(true);
         try {
+            await signup({
+                name,
+                email,
+                mobile,
+                password,
+                businessName,
+                gstNumber
+            });
+
+            // Auto-login after successful signup
             await login(email, password);
+            showToast('Account created! Logging you in...', 'success');
+            // No need to navigate, AuthContext state change will trigger RootNavigator switch
         } catch (error: any) {
-            if (error.response && error.response.status === 401) {
-                showToast('Invalid credentials', 'error');
-            } else {
-                showToast('Login Failed: Server error', 'error');
-            }
+            const errorMessage = error.response?.data?.message || 'Signup Failed';
+            showToast(Array.isArray(errorMessage) ? errorMessage[0] : errorMessage, 'error');
         } finally {
             setLoading(false);
         }
@@ -46,11 +61,18 @@ export const LoginScreen = () => {
                 showsVerticalScrollIndicator={false}
             >
                 <View style={styles.content}>
-                    <Text style={styles.title}>Vehicle Manager</Text>
-                    <Text style={styles.subtitle}>Sign in to continue</Text>
+                    <Text style={styles.title}>Create Account</Text>
+                    <Text style={styles.subtitle}>Sign up to get started</Text>
 
                     <Input
-                        label="Email"
+                        label="Name *"
+                        placeholder="Enter your full name"
+                        value={name}
+                        onChangeText={setName}
+                    />
+
+                    <Input
+                        label="Email *"
                         placeholder="Enter your email"
                         value={email}
                         onChangeText={setEmail}
@@ -59,8 +81,16 @@ export const LoginScreen = () => {
                     />
 
                     <Input
-                        label="Password"
-                        placeholder="Enter your password"
+                        label="Mobile *"
+                        placeholder="Enter your mobile number"
+                        value={mobile}
+                        onChangeText={setMobile}
+                        keyboardType="phone-pad"
+                    />
+
+                    <Input
+                        label="Password *"
+                        placeholder="Create a password"
                         value={password}
                         onChangeText={setPassword}
                         secureTextEntry={!isPasswordVisible}
@@ -68,17 +98,32 @@ export const LoginScreen = () => {
                         onRightIconPress={() => setIsPasswordVisible(!isPasswordVisible)}
                     />
 
+                    <Input
+                        label="Business Name"
+                        placeholder="Enter business name (Optional)"
+                        value={businessName}
+                        onChangeText={setBusinessName}
+                    />
+
+                    <Input
+                        label="GST Number"
+                        placeholder="Enter GST number (Optional)"
+                        value={gstNumber}
+                        onChangeText={setGstNumber}
+                        autoCapitalize="characters"
+                    />
+
                     <Button
-                        title="Login"
-                        onPress={handleLogin}
+                        title="Sign Up"
+                        onPress={handleSignup}
                         loading={loading}
                         style={styles.button}
                     />
 
-                    <View style={styles.signupLink}>
-                        <Text style={styles.signupText}>Don't have an account? </Text>
-                        <TouchableOpacity onPress={() => (navigation as any).navigate('Signup')}>
-                            <Text style={styles.signupLinkText}>Sign Up</Text>
+                    <View style={styles.loginLink}>
+                        <Text style={styles.loginText}>Already have an account? </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                            <Text style={styles.loginLinkText}>Login</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -94,6 +139,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         flexGrow: 1,
         justifyContent: 'center',
+        paddingVertical: Spacing.xl,
     },
     content: {
         padding: Spacing.md,
@@ -114,16 +160,16 @@ const styles = StyleSheet.create({
     button: {
         marginTop: Spacing.md,
     },
-    signupLink: {
+    loginLink: {
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: Spacing.lg,
     },
-    signupText: {
+    loginText: {
         color: Colors.text,
         fontSize: 14,
     },
-    signupLinkText: {
+    loginLinkText: {
         color: Colors.primary,
         fontSize: 14,
         fontWeight: 'bold',

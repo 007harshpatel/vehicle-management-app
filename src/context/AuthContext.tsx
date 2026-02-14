@@ -1,13 +1,14 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as loginApi } from '../api/auth';
+import { updateUser } from '../api/users';
 
 interface User {
     id: number;
     email: string;
     name: string;
     role: string;
-    phone?: string;
+    mobile: string;
 }
 
 interface AuthContextType {
@@ -16,6 +17,7 @@ interface AuthContextType {
     isLoading: boolean;
     login: (email: string, password: string) => Promise<void>;
     signup: (userData: any) => Promise<void>;
+    updateProfile: (data: Partial<User>) => Promise<void>;
     logout: () => Promise<void>;
     isAuthenticated: boolean;
 }
@@ -80,6 +82,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    const updateProfile = async (data: Partial<User>) => {
+        if (!user) return;
+        try {
+            const updatedUser = await updateUser(user.id, data);
+            // API returns the updated user object
+            const newUser = { ...user, ...updatedUser };
+            setUser(newUser);
+            await AsyncStorage.setItem('user', JSON.stringify(newUser));
+        } catch (error) {
+            console.error('Update profile error', error);
+            throw error;
+        }
+    };
+
     const logout = async () => {
         setAccessToken(null);
         setUser(null);
@@ -95,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 isLoading,
                 login,
                 signup,
+                updateProfile,
                 logout,
                 isAuthenticated: !!accessToken,
             }}

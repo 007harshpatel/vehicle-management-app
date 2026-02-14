@@ -9,9 +9,10 @@ interface DatePickerInputProps {
     onChange: (date: Date) => void;
     error?: string;
     dateFormat?: string; // Optional format like YYYY-MM-DD
+    editable?: boolean;
 }
 
-export const DatePickerInput: React.FC<DatePickerInputProps> = ({ label, value, onChange, error }) => {
+export const DatePickerInput: React.FC<DatePickerInputProps> = ({ label, value, onChange, error, editable = true }) => {
     const [show, setShow] = useState(false);
 
     // Convert value to Date object for the picker
@@ -43,8 +44,9 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({ label, value, 
             {label && <Text style={styles.label}>{label}</Text>}
 
             <TouchableOpacity
-                style={[styles.input, error ? styles.inputError : null]}
-                onPress={() => setShow(true)}
+                style={[styles.input, error ? styles.inputError : null, !editable && styles.disabledInput]}
+                onPress={() => editable && setShow(true)}
+                activeOpacity={editable ? 0.7 : 1}
             >
                 <Text style={[styles.inputText, !displayValue && styles.placeholder]}>
                     {displayValue || 'Select Date'}
@@ -145,5 +147,9 @@ const styles = StyleSheet.create({
         color: Colors.primary,
         fontWeight: 'bold',
         fontSize: 16,
+    },
+    disabledInput: {
+        backgroundColor: Colors.background, // or a lighter gray
+        opacity: 0.6,
     },
 });

@@ -45,7 +45,7 @@ export const SalaryListScreen = () => {
                 </View>
                 <View style={styles.headerText}>
                     <Text style={styles.amount}>₹{item.amount}</Text>
-                    <Text style={styles.subtitle}>{item.salaryType}</Text>
+                    <Text style={styles.subtitle}>{item.note}</Text>
                 </View>
             </TouchableOpacity>
 

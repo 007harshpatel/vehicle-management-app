@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, StatusBar, Dimensions, Platform, TextInput, Animated, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
@@ -13,10 +14,12 @@ const SCROLL_RANGE = HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT;
 const AVATAR_SIZE = 100;
 
 export const ProfileScreen = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, updateProfile } = useAuth();
+    const { showToast } = useToast();
     const [name, setName] = useState(user?.name || '');
     const [email, setEmail] = useState(user?.email || '');
-    const [phone, setPhone] = useState(user?.phone || '');
+    const [phone, setPhone] = useState(user?.mobile || '');
+    const [loading, setLoading] = useState(false);
 
     // Standard RN Animated
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -51,8 +54,22 @@ export const ProfileScreen = () => {
         extrapolate: 'clamp',
     });
 
-    const handleUpdate = () => {
-        alert('Profile Updated Successfully!');
+    const handleUpdate = async () => {
+        if (!name.trim()) {
+            showToast('Name is required', 'warning');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await updateProfile({ name, mobile: phone }); // Backend expects 'mobile', context/state calls it 'phone'
+            showToast('Profile Updated Successfully!', 'success');
+        } catch (error) {
+            console.error(error);
+            showToast('Failed to update profile', 'error');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -145,18 +162,6 @@ export const ProfileScreen = () => {
                                     onChangeText={setPhone}
                                     placeholder="Enter phone number"
                                     keyboardType="phone-pad"
-                                />
-                            </View>
-                        </View>
-
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.label}>User Role</Text>
-                            <View style={[styles.inputContainer, { backgroundColor: '#f0f0f0' }]}>
-                                <Text style={[styles.inputIcon, { fontSize: 20 }]}>🛡️</Text>
-                                <TextInput
-                                    style={[styles.input, { color: '#666' }]}
-                                    value={user?.role?.toUpperCase() || 'OWNER'}
-                                    editable={false}
                                 />
                             </View>
                         </View>

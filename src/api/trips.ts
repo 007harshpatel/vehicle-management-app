@@ -4,6 +4,7 @@ export interface Trip {
     id: number;
     driverId: number;
     driverName: string;
+    partyId?: number; // Linked Ledger Party
     supplyTo: string;
     billNo: string;
     startDatetime: string;
@@ -26,7 +27,7 @@ export interface Trip {
     viaLocation?: string;
     toLocation: string;
     weight: number;
-    frs: number;
+
     loLo: number;
     detention: number;
 
@@ -47,10 +48,11 @@ export interface Trip {
     dealAmount?: number;
     ourCostNote?: string;
     partyBillNote?: string;
+    billDueDate?: string;
 }
 
-export const getTrips = async () => {
-    const response = await client.get('/trips');
+export const getTrips = async (filters?: { partyId?: number }) => {
+    const response = await client.get('/trips', { params: filters });
     return response.data;
 };
 

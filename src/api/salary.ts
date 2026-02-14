@@ -4,11 +4,9 @@ import { Driver } from './drivers';
 export interface Salary {
     id: number;
     driverId: number;
-    salaryType: string;
     amount: number;
     salaryDate: string;
-    advance?: number;
-    deduction?: number;
+    note?: string;
     driver?: Driver;
 }
 export const getSalaries = async () => {

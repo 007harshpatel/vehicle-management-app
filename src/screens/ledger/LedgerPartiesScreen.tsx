@@ -36,10 +36,7 @@ export const LedgerPartiesScreen = () => {
 
     const renderItem = ({ item }: { item: Party }) => (
         <Card style={[styles.card, { padding: 0 }]}>
-            <TouchableOpacity
-                style={styles.cardHeader}
-                onPress={() => navigation.navigate('CreateParty', { party: item })}
-            >
+            <View style={styles.cardHeader}>
                 <View style={[styles.iconContainer, { backgroundColor: '#607D8B' + '20' }]}>
                     <Text style={{ fontSize: 24 }}>📖</Text>
                 </View>
@@ -47,7 +44,7 @@ export const LedgerPartiesScreen = () => {
                     <Text style={styles.name}>{item.partyName}</Text>
                     <Text style={styles.subtitle}>{item.partyType}</Text>
                 </View>
-            </TouchableOpacity>
+            </View>
 
             <View style={styles.divider} />
 
@@ -58,6 +55,28 @@ export const LedgerPartiesScreen = () => {
                         <Text style={styles.detail}>{item.contact}</Text>
                     </View>
                 )}
+                <View style={[styles.row, { marginTop: 4 }]}>
+                    <Text style={{ fontSize: 14, marginRight: 8 }}>💰</Text>
+                    <Text style={[styles.detail, { color: Colors.error, fontWeight: 'bold' }]}>
+                        Due: ₹{item.totalDue?.toFixed(2) || '0.00'}
+                    </Text>
+                </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.actionButtons}>
+                <Button
+                    title="Edit ✏️"
+                    onPress={() => navigation.navigate('CreateParty', { party: item })}
+                    variant="outline"
+                    style={styles.actionButton}
+                />
+                <Button
+                    title="Profit Status 📈"
+                    onPress={() => navigation.navigate('PartyProfit', { party: item })}
+                    style={styles.actionButton}
+                />
             </View>
         </Card>
     );
@@ -167,5 +186,15 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: Colors.gray,
         marginTop: Spacing.xl,
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        padding: Spacing.sm,
+    },
+    actionButton: {
+        flex: 1,
+        marginHorizontal: Spacing.xs,
+        paddingVertical: Spacing.xs,
     },
 });

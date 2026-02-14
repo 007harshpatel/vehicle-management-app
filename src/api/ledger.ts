@@ -6,6 +6,7 @@ export interface Party {
     partyType: string;
     contact?: string;
     creditLimit?: number;
+    totalDue?: number;
 }
 
 export interface LedgerEntry {
@@ -15,6 +16,7 @@ export interface LedgerEntry {
     amount: number;
     date: string;
     notes?: string;
+    party?: Party;
 }
 
 export const getParties = async () => {

@@ -11,6 +11,7 @@ import { Button } from '../../components/Button';
 import { createTrip, updateTrip, Trip } from '../../api/trips';
 import { getVehicles, Vehicle } from '../../api/vehicles';
 import { getDrivers, Driver } from '../../api/drivers';
+import { getParties, Party } from '../../api/ledger';
 import { BASE_URL } from '../../api/client';
 import { Spacing, Colors, BorderRadius } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
@@ -24,12 +25,14 @@ export const CreateTripScreen = ({ route }: any) => {
     // Data Sources
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [parties, setParties] = useState<Party[]>([]);
 
     // --- Form Fields ---
 
     // 1. Trip Basic Info
     const [driverId, setDriverId] = useState('');
     const [driverName, setDriverName] = useState('');
+    const [partyId, setPartyId] = useState('');
     const [supplyTo, setSupplyTo] = useState('');
     const [billNo, setBillNo] = useState('');
     const [startDatetime, setStartDatetime] = useState(new Date().toISOString().split('T')[0]);
@@ -60,13 +63,14 @@ export const CreateTripScreen = ({ route }: any) => {
 
     // 4. Party Bill (Party pase thi levana)
     const [rate, setRate] = useState('');
-    const [frs, setFrs] = useState('');
+
     const [loLo, setLoLo] = useState('');
     const [extraCharge, setExtraCharge] = useState(''); // Label: Extra Money
     const [weighBridge, setWeighBridge] = useState('');
     const [detention, setDetention] = useState('');
     const [partyBillNote, setPartyBillNote] = useState('');
     const [transporter, setTransporter] = useState('');
+    const [billDueDate, setBillDueDate] = useState<string | undefined>(undefined);
 
     // 5. Financial Totals
     const [totalOurCost, setTotalOurCost] = useState(0);
@@ -89,6 +93,7 @@ export const CreateTripScreen = ({ route }: any) => {
         if (editingTrip) {
             setDriverId(editingTrip.driverId ? editingTrip.driverId.toString() : '');
             setDriverName(editingTrip.driverName);
+            setPartyId(editingTrip.partyId ? editingTrip.partyId.toString() : '');
             setSupplyTo(editingTrip.supplyTo);
             setBillNo(editingTrip.billNo);
             setStartDatetime(editingTrip.startDatetime ? editingTrip.startDatetime.split('T')[0] : new Date().toISOString().split('T')[0]);
@@ -119,13 +124,14 @@ export const CreateTripScreen = ({ route }: any) => {
 
             // Party Bill
             setRate(editingTrip.rate ? editingTrip.rate.toString() : '');
-            setFrs(editingTrip.frs ? editingTrip.frs.toString() : '');
+
             setLoLo(editingTrip.loLo ? editingTrip.loLo.toString() : '');
             setExtraCharge(editingTrip.extraCharge ? editingTrip.extraCharge.toString() : ''); // Mapped to Bill Extra
             setWeighBridge(editingTrip.weighBridge ? editingTrip.weighBridge.toString() : '');
             setDetention(editingTrip.detention ? editingTrip.detention.toString() : '');
             setPartyBillNote(editingTrip.partyBillNote || '');
             setTransporter(editingTrip.transporter || '');
+            setBillDueDate(editingTrip.billDueDate ? editingTrip.billDueDate.split('T')[0] : undefined);
 
             // Financials
             setLessAdvance(editingTrip.lessAdvance ? editingTrip.lessAdvance.toString() : '');
@@ -156,7 +162,7 @@ export const CreateTripScreen = ({ route }: any) => {
         // 2. Calculate Party Bill (Party pase thi levana)
         // Rate + FRS + LoLo + Extra Bill (DB extraCharge) + Waybridge + Detention
         const bill = (Number(rate) || 0) +
-            (Number(frs) || 0) +
+
             (Number(loLo) || 0) +
             (Number(extraCharge) || 0) +
             (Number(weighBridge) || 0) +
@@ -171,16 +177,18 @@ export const CreateTripScreen = ({ route }: any) => {
         const received = Number(receivedAmount) || 0;
         setPendingAmount((deal + bill) - received);
 
-    }, [diesel, toll, driverExpense, biltyCharge, extraMoney, rate, frs, loLo, extraCharge, weighBridge, detention, receivedAmount, dealAmount]);
+    }, [diesel, toll, driverExpense, biltyCharge, extraMoney, rate, loLo, extraCharge, weighBridge, detention, receivedAmount, dealAmount]);
 
     const fetchData = async () => {
         try {
-            const [vehiclesData, driversData] = await Promise.all([
+            const [vehiclesData, driversData, partiesData] = await Promise.all([
                 getVehicles(),
-                getDrivers()
+                getDrivers(),
+                getParties()
             ]);
             setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
             setDrivers(Array.isArray(driversData) ? driversData : []);
+            setParties(Array.isArray(partiesData) ? partiesData : []);
         } catch (error) {
             console.error(error);
             showToast('Failed to fetch required data', 'error');
@@ -252,6 +260,7 @@ export const CreateTripScreen = ({ route }: any) => {
         // Basic
         formData.append('driverId', driverId);
         formData.append('driverName', driverName);
+        if (partyId) formData.append('partyId', partyId);
         formData.append('supplyTo', supplyTo);
         formData.append('billNo', billNo);
         formData.append('startDatetime', startDatetime);
@@ -282,13 +291,14 @@ export const CreateTripScreen = ({ route }: any) => {
 
         // Party Bill (Mapped Fields)
         formData.append('rate', rate || '0');
-        formData.append('frs', frs || '0');
+
         formData.append('loLo', loLo || '0');
         formData.append('extraCharge', extraCharge || '0'); // UI: Extra Money (Bill) -> DB: extraCharge
         formData.append('weighBridge', weighBridge || '0');
         formData.append('detention', detention || '0');
         formData.append('partyBillNote', partyBillNote);
         formData.append('transporter', transporter);
+        if (billDueDate) formData.append('billDueDate', billDueDate);
 
         // Financials
         // Inherited fields logic
@@ -345,6 +355,29 @@ export const CreateTripScreen = ({ route }: any) => {
                 {/* --- Basic Info --- */}
                 <SectionHeader title="Basic Info" />
                 <View style={styles.card}>
+                    {/* 1. Ledger Party */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Ledger Party</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker selectedValue={partyId} onValueChange={setPartyId} style={styles.picker}>
+                                <Picker.Item label="Select Party" value="" />
+                                {parties.map((p) => <Picker.Item key={p.id} label={p.partyName} value={p.id.toString()} />)}
+                            </Picker>
+                        </View>
+                    </View>
+
+                    {/* 2. Vehicle */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Vehicle *</Text>
+                        <View style={styles.pickerContainer}>
+                            <Picker selectedValue={vehicleId} onValueChange={handleVehicleChange} style={styles.picker}>
+                                <Picker.Item label="Select Vehicle" value="" />
+                                {vehicles.map((v) => <Picker.Item key={v.id} label={v.vehicleNumber} value={v.id.toString()} />)}
+                            </Picker>
+                        </View>
+                    </View>
+
+                    {/* 3. Driver */}
                     <View style={styles.inputGroup}>
                         <Text style={styles.label}>Driver *</Text>
                         <View style={styles.pickerContainer}>
@@ -354,8 +387,12 @@ export const CreateTripScreen = ({ route }: any) => {
                             </Picker>
                         </View>
                     </View>
+
+                    {/* 4. Date */}
                     <DatePickerInput label="Date *" value={startDatetime} onChange={(d) => setStartDatetime(d.toISOString().split('T')[0])} />
+
                     <Input label="Bill No *" value={billNo} onChangeText={setBillNo} />
+                    <DatePickerInput label="Bill Due Date" value={billDueDate} onChange={(d) => setBillDueDate(d.toISOString().split('T')[0])} />
                     <Input label="Supply To" value={supplyTo} onChangeText={setSupplyTo} />
                     <Input label="Deal Amount" value={dealAmount} onChangeText={setDealAmount} keyboardType="numeric" />
 
@@ -371,19 +408,9 @@ export const CreateTripScreen = ({ route }: any) => {
                     </View>
                 </View>
 
-                {/* --- Vehicle & Route --- */}
-                <SectionHeader title="Vehicle & Route" />
+                {/* --- Route Info --- */}
+                <SectionHeader title="Route Details" />
                 <View style={styles.card}>
-                    <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Vehicle *</Text>
-                        <View style={styles.pickerContainer}>
-                            <Picker selectedValue={vehicleId} onValueChange={handleVehicleChange} style={styles.picker}>
-                                <Picker.Item label="Select Vehicle" value="" />
-                                {vehicles.map((v) => <Picker.Item key={v.id} label={v.vehicleNumber} value={v.id.toString()} />)}
-                            </Picker>
-                        </View>
-                    </View>
-
                     {/* Route Timeline UI */}
                     <View style={styles.routeContainer}>
                         <View style={styles.routeRow}>
@@ -440,7 +467,7 @@ export const CreateTripScreen = ({ route }: any) => {
                     <Input label="Freight Rate" value={rate} onChangeText={setRate} keyboardType="numeric" style={{ fontWeight: 'bold' }} />
 
                     <View style={styles.row}>
-                        <View style={styles.col}><Input label="FRS" value={frs} onChangeText={setFrs} keyboardType="numeric" /></View>
+
                         <View style={styles.col}><Input label="LoLo" value={loLo} onChangeText={setLoLo} keyboardType="numeric" /></View>
                     </View>
 

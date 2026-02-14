@@ -54,7 +54,9 @@ export const LedgerEntriesScreen = () => {
                         <Text style={[styles.amount, { color: color }]}>
                             {isCredit ? '+' : '-'} ₹{item.amount}
                         </Text>
-                        <Text style={styles.subtitle}>Party ID: {item.partyId}</Text>
+                        <Text style={styles.subtitle}>
+                            Party: {item.party?.partyName || item.partyId}
+                        </Text>
                     </View>
                 </TouchableOpacity>
 

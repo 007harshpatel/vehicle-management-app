@@ -37,4 +37,15 @@ export const updateDriver = async (id: number, driverData: any) => {
         },
     });
     return response.data;
+    return response.data;
+};
+
+export const getDriverTransactions = async (driverId: number) => {
+    try {
+        const response = await client.get(`/drivers/${driverId}/transactions`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching driver transactions:', error);
+        throw error;
+    }
 };

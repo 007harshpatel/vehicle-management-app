@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator, Alert, TouchableOpacity, Image } from 'react-native';
+import { Eye, Pencil, History } from 'lucide-react-native';
 import { BASE_URL } from '../../api/client';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer } from '../../components/ScreenContainer';
@@ -38,31 +39,50 @@ export const DriversListScreen = () => {
 
     const renderItem = ({ item }: { item: Driver }) => (
         <Card style={[styles.card, { padding: 0 }]}>
-            <TouchableOpacity
-                style={styles.cardHeader}
-                onPress={() => navigation.navigate('CreateDriver', { driver: item })}
-            >
-                <View style={[styles.iconContainer, { backgroundColor: item.photo ? 'transparent' : '#2196F3' + '20' }]}>
-                    {item.photo ? (
-                        <Image source={{ uri: `${BASE_URL}/uploads/${item.photo}` }} style={styles.driverImage} />
-                    ) : (
-                        <Text style={{ fontSize: 24 }}>👨‍🔧</Text>
-                    )}
-                </View>
-                <View style={styles.headerText}>
-                    <Text style={styles.name}>{item.name}</Text>
-                    <View style={styles.row}>
-                        {item.status ? (
-                            <>
-                                <Text style={{ fontSize: 12, marginRight: 4, color: Colors.success }}>✅</Text>
-                                <Text style={[styles.subtitle, { color: Colors.success }]}>{item.status}</Text>
-                            </>
+            <View style={styles.cardHeader}>
+                <View style={styles.headerLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: item.photo ? 'transparent' : '#2196F3' + '20' }]}>
+                        {item.photo ? (
+                            <Image source={{ uri: `${BASE_URL}/uploads/${item.photo}` }} style={styles.driverImage} />
                         ) : (
-                            <Text style={styles.subtitle}>Active</Text>
+                            <Text style={{ fontSize: 24 }}>👨‍🔧</Text>
                         )}
                     </View>
+                    <View style={styles.headerText}>
+                        <Text style={styles.name}>{item.name}</Text>
+                        <View style={styles.row}>
+                            {item.status ? (
+                                <>
+                                    <Text style={{ fontSize: 12, marginRight: 4, color: Colors.success }}>✅</Text>
+                                    <Text style={[styles.subtitle, { color: Colors.success }]}>{item.status}</Text>
+                                </>
+                            ) : (
+                                <Text style={styles.subtitle}>Active</Text>
+                            )}
+                        </View>
+                    </View>
                 </View>
-            </TouchableOpacity>
+                <View style={styles.headerActions}>
+                    <TouchableOpacity
+                        style={[styles.iconButton, { backgroundColor: '#E3F2FD' }]}
+                        onPress={() => navigation.navigate('CreateDriver', { driver: item, viewOnly: true })}
+                    >
+                        <Eye size={20} color={Colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.iconButton, { backgroundColor: '#FFF3E0' }]}
+                        onPress={() => navigation.navigate('CreateDriver', { driver: item })}
+                    >
+                        <Pencil size={20} color={Colors.warning} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.iconButton, { backgroundColor: '#E8F5E9' }]}
+                        onPress={() => navigation.navigate('DriverHistory', { driverId: item.id, driverName: item.name })}
+                    >
+                        <History size={20} color={Colors.success} />
+                    </TouchableOpacity>
+                </View>
+            </View>
 
             <View style={styles.divider} />
 
@@ -130,7 +150,23 @@ const styles = StyleSheet.create({
     cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         padding: Spacing.md,
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    iconButton: {
+        padding: 8,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     headerText: {
         flex: 1,

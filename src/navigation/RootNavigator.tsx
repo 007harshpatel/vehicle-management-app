@@ -13,6 +13,7 @@ import { DriversListScreen } from '../screens/drivers/DriversListScreen';
 import { CreateDriverScreen } from '../screens/drivers/CreateDriverScreen';
 import { VehiclesListScreen } from '../screens/vehicles/VehiclesListScreen';
 import { CreateVehicleScreen } from '../screens/vehicles/CreateVehicleScreen';
+import { DriverHistoryScreen } from '../screens/drivers/DriverHistoryScreen';
 import { TripsListScreen } from '../screens/trips/TripsListScreen';
 import { CreateTripScreen } from '../screens/trips/CreateTripScreen';
 import { ExpensesListScreen } from '../screens/expenses/ExpensesListScreen';
@@ -23,6 +24,7 @@ import { LedgerPartiesScreen } from '../screens/ledger/LedgerPartiesScreen';
 import { CreatePartyScreen } from '../screens/ledger/CreatePartyScreen';
 import { LedgerEntriesScreen } from '../screens/ledger/LedgerEntriesScreen';
 import { CreateLedgerEntryScreen } from '../screens/ledger/CreateLedgerEntryScreen';
+import { PartyProfitScreen } from '../screens/ledger/PartyProfitScreen';
 import { MaintenanceListScreen } from '../screens/maintenance/MaintenanceListScreen';
 import { CreateMaintenanceScreen } from '../screens/maintenance/CreateMaintenanceScreen';
 import { CreateNotificationScreen } from '../screens/notifications/CreateNotificationScreen';
@@ -54,6 +56,7 @@ export const RootNavigator = () => {
                         <Stack.Screen name="DriversList" component={DriversListScreen} />
                         <Stack.Screen name="CreateDriver" component={CreateDriverScreen} />
                         <Stack.Screen name="EditDriver" component={require('../screens/drivers/EditDriverScreen').default} />
+                        <Stack.Screen name="DriverHistory" component={DriverHistoryScreen} />
 
                         <Stack.Screen name="VehiclesList" component={VehiclesListScreen} />
                         <Stack.Screen name="CreateVehicle" component={CreateVehicleScreen} />
@@ -76,6 +79,7 @@ export const RootNavigator = () => {
                         <Stack.Screen name="LedgerEntries" component={LedgerEntriesScreen} />
                         <Stack.Screen name="CreateLedgerEntry" component={CreateLedgerEntryScreen} />
                         <Stack.Screen name="EditLedgerEntry" component={require('../screens/ledger/EditLedgerEntryScreen').default} />
+                        <Stack.Screen name="PartyProfit" component={PartyProfitScreen} />
 
                         <Stack.Screen name="MaintenanceList" component={MaintenanceListScreen} />
                         <Stack.Screen name="CreateMaintenance" component={CreateMaintenanceScreen} />

@@ -18,6 +18,7 @@ export const CreateVehicleScreen = ({ route }: any) => {
     const navigation = useNavigation();
     const { showToast } = useToast();
     const editingVehicle = route.params?.vehicle as Vehicle | undefined;
+    const viewOnly = route.params?.viewOnly as boolean | undefined;
     const [loading, setLoading] = useState(false);
 
     const [vehicleNumber, setVehicleNumber] = useState('');
@@ -123,6 +124,34 @@ export const CreateVehicleScreen = ({ route }: any) => {
             return;
         }
 
+        // Explicit Validation
+        const vehicleNumberRegex = /^[A-Z0-9]+$/;
+        if (!vehicleNumberRegex.test(vehicleNumber)) {
+            showToast('Vehicle Number must be alphanumeric (A-Z, 0-9)', 'warning');
+            return;
+        }
+
+        if (isNaN(parseFloat(capacity)) || parseFloat(capacity) <= 0) {
+            showToast('Capacity must be a valid positive number', 'warning');
+            return;
+        }
+        if (capacity.length > 6) {
+            showToast('Capacity cannot exceed 6 characters', 'warning');
+            return;
+        }
+
+        if (purchasePrice) {
+            const price = parseFloat(purchasePrice);
+            if (isNaN(price) || price < 0) {
+                showToast('Purchase Price must be a valid number', 'warning');
+                return;
+            }
+            if (purchasePrice.length > 10) {
+                showToast('Purchase Price cannot exceed 10 characters', 'warning');
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             const formData = new FormData();
@@ -198,9 +227,11 @@ export const CreateVehicleScreen = ({ route }: any) => {
     const renderUploadSection = (label: string, field: string, file: any, existingUrl?: string) => (
         <View style={styles.uploadSection}>
             <Text style={styles.label}>{label}</Text>
-            <TouchableOpacity onPress={() => handleUploadPress(field)} style={styles.uploadButton}>
-                <Text style={styles.uploadButtonText}>{file ? "Change File" : "Upload File"}</Text>
-            </TouchableOpacity>
+            {!viewOnly && (
+                <TouchableOpacity onPress={() => handleUploadPress(field)} style={styles.uploadButton}>
+                    <Text style={styles.uploadButtonText}>{file ? "Change File" : "Upload File"}</Text>
+                </TouchableOpacity>
+            )}
 
             {existingUrl && !file && (
                 <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingUrl}`)} style={styles.existingFileContainer}>
@@ -219,15 +250,26 @@ export const CreateVehicleScreen = ({ route }: any) => {
     );
 
     return (
-        <ScreenContainer title={editingVehicle ? "Edit Vehicle" : "Add Vehicle"}>
+        <ScreenContainer title={viewOnly ? "Vehicle Details" : (editingVehicle ? "Edit Vehicle" : "Add Vehicle")}>
             <ScrollView contentContainerStyle={styles.content}>
-                <Input label="Vehicle Number *" value={vehicleNumber} onChangeText={setVehicleNumber} />
+                <Input
+                    label="Vehicle Number *"
+                    value={vehicleNumber}
+                    onChangeText={(text) => {
+                        const sanitized = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                        if (sanitized.length <= 20) setVehicleNumber(sanitized);
+                    }}
+                    maxLength={20}
+                    autoCapitalize="characters"
+                    editable={!viewOnly}
+                />
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Vehicle Type *</Text>
                     <View style={styles.pickerContainer}>
                         <Picker
                             selectedValue={vehicleType}
                             onValueChange={(itemValue) => setVehicleType(itemValue)}
+                            enabled={!viewOnly}
                         >
                             <Picker.Item label="Select Type" value="" />
                             <Picker.Item label="Truck" value="Truck" />
@@ -237,7 +279,20 @@ export const CreateVehicleScreen = ({ route }: any) => {
                         </Picker>
                     </View>
                 </View>
-                <Input label="Capacity (kg/ton) *" value={capacity} onChangeText={setCapacity} keyboardType="numeric" />
+                <Input
+                    label="Capacity (kg/ton) *"
+                    value={capacity}
+                    onChangeText={(text) => {
+                        // Allow numbers and a single decimal point
+                        const sanitized = text.replace(/[^0-9.]/g, '');
+                        if ((sanitized.match(/\./g) || []).length <= 1 && sanitized.length <= 6) {
+                            setCapacity(sanitized);
+                        }
+                    }}
+                    keyboardType="numeric"
+                    maxLength={6}
+                    editable={!viewOnly}
+                />
 
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Default Driver</Text>
@@ -245,6 +300,7 @@ export const CreateVehicleScreen = ({ route }: any) => {
                         <Picker
                             selectedValue={driverId}
                             onValueChange={(itemValue) => setDriverId(itemValue)}
+                            enabled={!viewOnly}
                         >
                             <Picker.Item label="Select Driver" value="" />
                             {drivers.map((d) => (
@@ -260,6 +316,7 @@ export const CreateVehicleScreen = ({ route }: any) => {
                     label="Insurance Expiry"
                     value={insuranceExpiry}
                     onChange={(selectedDate) => setInsuranceExpiry(selectedDate.toISOString().split('T')[0])}
+                    editable={!viewOnly}
                 />
                 {renderUploadSection("Insurance Policy", "insurance", insuranceFile, (editingVehicle as any)?.insuranceFile)}
 
@@ -267,6 +324,7 @@ export const CreateVehicleScreen = ({ route }: any) => {
                     label="PUC Expiry"
                     value={pucExpiry}
                     onChange={(selectedDate) => setPucExpiry(selectedDate.toISOString().split('T')[0])}
+                    editable={!viewOnly}
                 />
                 {renderUploadSection("PUC Document", "puc", pucFile, (editingVehicle as any)?.pucFile)}
 
@@ -274,6 +332,7 @@ export const CreateVehicleScreen = ({ route }: any) => {
                     label="Fitness Expiry"
                     value={fitnessExpiry}
                     onChange={(selectedDate) => setFitnessExpiry(selectedDate.toISOString().split('T')[0])}
+                    editable={!viewOnly}
                 />
                 {renderUploadSection("Fitness Certificate", "fitness", fitnessFile, (editingVehicle as any)?.fitnessFile)}
 
@@ -281,17 +340,28 @@ export const CreateVehicleScreen = ({ route }: any) => {
 
                 <Text style={styles.sectionTitle}>Purcahse & Status</Text>
                 <DatePickerInput
-                    label="Purchase Date"
                     value={purchaseDate}
                     onChange={(selectedDate) => setPurchaseDate(selectedDate.toISOString().split('T')[0])}
+                    editable={!viewOnly}
                 />
-                <Input label="Purchase Price" value={purchasePrice} onChangeText={setPurchasePrice} keyboardType="numeric" />
+                <Input
+                    label="Purchase Price"
+                    value={purchasePrice}
+                    onChangeText={(text) => {
+                        const sanitized = text.replace(/[^0-9]/g, '');
+                        if (sanitized.length <= 10) setPurchasePrice(sanitized);
+                    }}
+                    keyboardType="numeric"
+                    maxLength={10}
+                    editable={!viewOnly}
+                />
                 <View style={styles.inputContainer}>
                     <Text style={styles.label}>Status</Text>
                     <View style={styles.pickerContainer}>
                         <Picker
                             selectedValue={status}
                             onValueChange={(itemValue) => setStatus(itemValue)}
+                            enabled={!viewOnly}
                         >
                             <Picker.Item label="Select Status" value="" />
                             <Picker.Item label="Active" value="Active" />
@@ -301,12 +371,14 @@ export const CreateVehicleScreen = ({ route }: any) => {
                     </View>
                 </View>
 
-                <Button
-                    title={editingVehicle ? "Update Vehicle" : "Create Vehicle"}
-                    onPress={handleSubmit}
-                    loading={loading}
-                    style={styles.button}
-                />
+                {!viewOnly && (
+                    <Button
+                        title={editingVehicle ? "Update Vehicle" : "Create Vehicle"}
+                        onPress={handleSubmit}
+                        loading={loading}
+                        style={styles.button}
+                    />
+                )}
 
                 {/* Upload Modal */}
                 <Modal visible={uploadModalVisible} transparent={true} animationType="slide" onRequestClose={() => setUploadModalVisible(false)}>

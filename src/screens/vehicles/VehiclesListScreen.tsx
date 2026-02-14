@@ -8,6 +8,7 @@ import { getVehicles, Vehicle } from '../../api/vehicles';
 import { Colors, Spacing } from '../../constants/theme';
 import { useToast } from '../../context/ToastContext';
 
+import { Eye, Pencil } from 'lucide-react-native';
 
 export const VehiclesListScreen = () => {
     const navigation = useNavigation<any>();
@@ -36,19 +37,32 @@ export const VehiclesListScreen = () => {
 
     const renderItem = ({ item }: { item: Vehicle }) => (
         <Card style={[styles.card, { padding: 0 }]}>
-            <TouchableOpacity
-                style={styles.cardHeader}
-                onPress={() => navigation.navigate('CreateVehicle', { vehicle: item })}
-            >
-                <View style={[styles.iconContainer, { backgroundColor: '#FF9800' + '20' }]}>
-                    <Text style={{ fontSize: 24 }}>🚛</Text>
+            <View style={styles.cardHeader}>
+                <View style={styles.headerLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: '#FF9800' + '20' }]}>
+                        <Text style={{ fontSize: 24 }}>🚛</Text>
+                    </View>
+                    <View style={styles.headerText}>
+                        <Text style={styles.number}>{item.vehicleNumber}</Text>
+                        <Text style={styles.subtitle}>{item.vehicleType}</Text>
+                        {item.driver && <Text style={styles.subtitle}>Driver: {item.driver.name}</Text>}
+                    </View>
                 </View>
-                <View style={styles.headerText}>
-                    <Text style={styles.number}>{item.vehicleNumber}</Text>
-                    <Text style={styles.subtitle}>{item.vehicleType}</Text>
-                    {item.driver && <Text style={styles.subtitle}>Driver: {item.driver.name}</Text>}
+                <View style={styles.headerActions}>
+                    <TouchableOpacity
+                        style={styles.iconButton}
+                        onPress={() => navigation.navigate('CreateVehicle', { vehicle: item, viewOnly: true })}
+                    >
+                        <Eye size={20} color={Colors.primary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.iconButton}
+                        onPress={() => navigation.navigate('CreateVehicle', { vehicle: item })}
+                    >
+                        <Pencil size={20} color={Colors.primary} />
+                    </TouchableOpacity>
                 </View>
-            </TouchableOpacity>
+            </View>
 
             <View style={styles.divider} />
 
@@ -118,7 +132,20 @@ const styles = StyleSheet.create({
     cardHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         padding: Spacing.md,
+    },
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    headerActions: {
+        flexDirection: 'row',
+        gap: Spacing.sm,
+    },
+    iconButton: {
+        padding: 8,
     },
     headerText: {
         flex: 1,

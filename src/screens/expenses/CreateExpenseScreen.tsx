@@ -146,6 +146,20 @@ export const CreateExpenseScreen = ({ route }: any) => {
             return;
         }
 
+        if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+            showToast('Amount must be a valid positive number', 'warning');
+            return;
+        }
+        if (amount.length > 10) {
+            showToast('Amount cannot exceed 10 characters', 'warning');
+            return;
+        }
+
+        if (notes.length > 200) {
+            showToast('Notes cannot exceed 200 characters', 'warning');
+            return;
+        }
+
         setLoading(true);
 
         const formData = new FormData();
@@ -215,7 +229,18 @@ export const CreateExpenseScreen = ({ route }: any) => {
                     </View>
                 </View>
 
-                <Input label="Amount *" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+                <Input
+                    label="Amount *"
+                    value={amount}
+                    onChangeText={(text) => {
+                        const sanitized = text.replace(/[^0-9.]/g, '');
+                        if ((sanitized.match(/\./g) || []).length <= 1 && sanitized.length <= 10) {
+                            setAmount(sanitized);
+                        }
+                    }}
+                    keyboardType="numeric"
+                    maxLength={10}
+                />
 
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Payment Mode *</Text>
@@ -298,7 +323,12 @@ export const CreateExpenseScreen = ({ route }: any) => {
                     </View>
                 )}
 
-                <Input label="Notes" value={notes} onChangeText={setNotes} />
+                <Input
+                    label="Notes"
+                    value={notes}
+                    onChangeText={setNotes}
+                    maxLength={200}
+                />
 
                 <Button
                     title={editingExpense ? "Update Expense" : "Create Expense"}

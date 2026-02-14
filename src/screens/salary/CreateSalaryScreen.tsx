@@ -19,20 +19,16 @@ export const CreateSalaryScreen = ({ route }: any) => {
     const [drivers, setDrivers] = useState<Driver[]>([]);
 
     const [driverId, setDriverId] = useState('');
-    const [salaryType, setSalaryType] = useState('Monthly');
     const [amount, setAmount] = useState('');
     const [salaryDate, setSalaryDate] = useState(new Date().toISOString().split('T')[0]);
-    const [advance, setAdvance] = useState('');
-    const [deduction, setDeduction] = useState('');
+    const [note, setNote] = useState('');
 
     useEffect(() => {
         if (editingSalary) {
             setDriverId(editingSalary.driverId.toString());
-            setSalaryType(editingSalary.salaryType);
             setAmount(editingSalary.amount.toString());
             setSalaryDate(editingSalary.salaryDate);
-            setAdvance(editingSalary.advance ? editingSalary.advance.toString() : '');
-            setDeduction(editingSalary.deduction ? editingSalary.deduction.toString() : '');
+            setNote(editingSalary.note || '');
         }
     }, [editingSalary]);
 
@@ -55,8 +51,18 @@ export const CreateSalaryScreen = ({ route }: any) => {
     };
 
     const handleSubmit = async () => {
-        if (!driverId || !amount || !salaryType || !salaryDate) {
-            showToast('Driver, Amount, Type and Date are required', 'warning');
+        if (!driverId || !amount || !salaryDate) {
+            showToast('Driver, Amount and Date are required', 'warning');
+            return;
+        }
+
+        if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+            showToast('Amount must be a valid positive number', 'warning');
+            return;
+        }
+
+        if (note.length > 200) {
+            showToast('Note cannot exceed 200 characters', 'warning');
             return;
         }
 
@@ -64,11 +70,9 @@ export const CreateSalaryScreen = ({ route }: any) => {
         try {
             const data = {
                 driverId: Number(driverId),
-                salaryType,
                 amount: Number(amount),
                 salaryDate,
-                advance: advance ? Number(advance) : undefined,
-                deduction: deduction ? Number(deduction) : undefined,
+                note: note.trim(),
             };
 
             if (editingSalary) {
@@ -110,28 +114,33 @@ export const CreateSalaryScreen = ({ route }: any) => {
                     </View>
                 </View>
 
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Salary Type *</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={salaryType}
-                            onValueChange={(itemValue: string) => setSalaryType(itemValue)}
-                            style={styles.picker}
-                        >
-                            <Picker.Item label="Monthly" value="Monthly" />
-                            <Picker.Item label="Trip-wise" value="Trip-wise" />
-                        </Picker>
-                    </View>
-                </View>
 
-                <Input label="Amount *" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+
+                <Input
+                    label="Amount *"
+                    value={amount}
+                    onChangeText={(text) => {
+                        const sanitized = text.replace(/[^0-9.]/g, '');
+                        if ((sanitized.match(/\./g) || []).length <= 1 && sanitized.length <= 10) {
+                            setAmount(sanitized);
+                        }
+                    }}
+                    keyboardType="numeric"
+                    maxLength={10}
+                />
                 <DatePickerInput
                     label="Date (YYYY-MM-DD) *"
                     value={salaryDate}
                     onChange={(selectedDate) => setSalaryDate(selectedDate.toISOString().split('T')[0])}
                 />
-                <Input label="Advance" value={advance} onChangeText={setAdvance} keyboardType="numeric" />
-                <Input label="Deduction" value={deduction} onChangeText={setDeduction} keyboardType="numeric" />
+                <Input
+                    label="Note"
+                    value={note}
+                    onChangeText={setNote}
+                    maxLength={200}
+                    multiline
+                    numberOfLines={3}
+                />
 
                 <Button
                     title={editingSalary ? "Update Payment" : "Record Payment"}
@@ -140,7 +149,7 @@ export const CreateSalaryScreen = ({ route }: any) => {
                     style={styles.button}
                 />
             </ScrollView>
-        </ScreenContainer>
+        </ScreenContainer >
     );
 };
 

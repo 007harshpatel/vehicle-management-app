@@ -16,6 +16,7 @@ export const CreateDriverScreen = ({ route }: any) => {
     const navigation = useNavigation();
     const { showToast } = useToast();
     const editingDriver = route.params?.driver as Driver | undefined;
+    const viewOnly = route.params?.viewOnly as boolean | undefined;
     const [loading, setLoading] = useState(false);
 
     const [name, setName] = useState('');
@@ -23,8 +24,6 @@ export const CreateDriverScreen = ({ route }: any) => {
     const [licenseNumber, setLicenseNumber] = useState('');
     const [licenseExpiry, setLicenseExpiry] = useState('');
     const [aadhaar, setAadhaar] = useState('');
-    const [salaryType, setSalaryType] = useState('');
-    const [salaryAmount, setSalaryAmount] = useState('');
     const [joiningDate, setJoiningDate] = useState('');
 
     // Files
@@ -43,8 +42,6 @@ export const CreateDriverScreen = ({ route }: any) => {
             setLicenseNumber(editingDriver.licenseNumber);
             setLicenseExpiry(editingDriver.licenseExpiry || '');
             setAadhaar(editingDriver.aadhaar || '');
-            setSalaryType(editingDriver.salaryType || '');
-            setSalaryAmount(editingDriver.salaryAmount ? editingDriver.salaryAmount.toString() : '');
             setJoiningDate(editingDriver.joiningDate || '');
         }
     }, [editingDriver]);
@@ -96,9 +93,11 @@ export const CreateDriverScreen = ({ route }: any) => {
     const renderUploadSection = (label: string, field: string, file: any, existingUrl?: string) => (
         <View style={styles.uploadSection}>
             <Text style={styles.label}>{label}</Text>
-            <TouchableOpacity onPress={() => handleUploadPress(field)} style={styles.uploadButton}>
-                <Text style={styles.uploadButtonText}>{file ? "Change File" : "Upload File"}</Text>
-            </TouchableOpacity>
+            {!viewOnly && (
+                <TouchableOpacity onPress={() => handleUploadPress(field)} style={styles.uploadButton}>
+                    <Text style={styles.uploadButtonText}>{file ? "Change File" : "Upload File"}</Text>
+                </TouchableOpacity>
+            )}
 
             {existingUrl && !file && (
                 <TouchableOpacity onPress={() => Linking.openURL(`${BASE_URL}/${existingUrl}`)} style={styles.existingFileContainer}>
@@ -122,6 +121,15 @@ export const CreateDriverScreen = ({ route }: any) => {
             return;
         }
 
+        if (aadhaar.length > 0 && aadhaar.length !== 12) {
+            showToast('Aadhaar must be 12 digits', 'warning');
+            return;
+        }
+        if (mobile.length !== 10) {
+            showToast('Mobile number must be 10 digits', 'warning');
+            return;
+        }
+
         setLoading(true);
         const formData = new FormData();
         formData.append('name', name);
@@ -129,8 +137,6 @@ export const CreateDriverScreen = ({ route }: any) => {
         formData.append('licenseNumber', licenseNumber);
         if (licenseExpiry) formData.append('licenseExpiry', licenseExpiry);
         if (aadhaar) formData.append('aadhaar', aadhaar);
-        if (salaryType) formData.append('salaryType', salaryType);
-        if (salaryAmount) formData.append('salaryAmount', salaryAmount);
         if (joiningDate) formData.append('joiningDate', joiningDate);
 
         if (aadhaarFile) {
@@ -191,23 +197,62 @@ export const CreateDriverScreen = ({ route }: any) => {
     };
 
     return (
-        <ScreenContainer title={editingDriver ? "Edit Driver" : "Add Driver"}>
+        <ScreenContainer title={viewOnly ? "Driver Details" : (editingDriver ? "Edit Driver" : "Add Driver")}>
             <ScrollView contentContainerStyle={styles.content}>
-                <Input label="Name *" value={name} onChangeText={setName} />
-                <Input label="Mobile *" value={mobile} onChangeText={setMobile} keyboardType="phone-pad" />
-                <Input label="License Number *" value={licenseNumber} onChangeText={setLicenseNumber} />
+                <Input
+                    label="Name *"
+                    value={name}
+                    onChangeText={(text) => {
+                        const sanitized = text.replace(/[^a-zA-Z\s]/g, '');
+                        if (sanitized.length <= 50) setName(sanitized);
+                    }}
+                    maxLength={50}
+                    editable={!viewOnly}
+                />
+                <Input
+                    label="Mobile *"
+                    value={mobile}
+                    onChangeText={(text) => {
+                        const sanitized = text.replace(/[^0-9]/g, '');
+                        if (sanitized.length <= 10) setMobile(sanitized);
+                    }}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                    editable={!viewOnly}
+                />
+                <Input
+                    label="License Number *"
+                    value={licenseNumber}
+                    onChangeText={(text) => {
+                        const sanitized = text.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                        if (sanitized.length <= 20) setLicenseNumber(sanitized);
+                    }}
+                    maxLength={20}
+                    autoCapitalize="characters"
+                    editable={!viewOnly}
+                />
                 <DatePickerInput
                     label="License Expiry (YYYY-MM-DD)"
                     value={licenseExpiry}
                     onChange={(selectedDate) => setLicenseExpiry(selectedDate.toISOString().split('T')[0])}
+                    editable={!viewOnly}
                 />
-                <Input label="Aadhaar" value={aadhaar} onChangeText={setAadhaar} keyboardType="numeric" />
-                <Input label="Salary Type (e.g. Monthly)" value={salaryType} onChangeText={setSalaryType} />
-                <Input label="Salary Amount" value={salaryAmount} onChangeText={setSalaryAmount} keyboardType="numeric" />
+                <Input
+                    label="Aadhaar"
+                    value={aadhaar}
+                    onChangeText={(text) => {
+                        const sanitized = text.replace(/[^0-9]/g, '');
+                        if (sanitized.length <= 12) setAadhaar(sanitized);
+                    }}
+                    keyboardType="numeric"
+                    maxLength={12}
+                    editable={!viewOnly}
+                />
                 <DatePickerInput
                     label="Joining Date (YYYY-MM-DD)"
                     value={joiningDate}
                     onChange={(selectedDate) => setJoiningDate(selectedDate.toISOString().split('T')[0])}
+                    editable={!viewOnly}
                 />
 
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: Colors.primary, marginTop: Spacing.md, marginBottom: Spacing.sm }}>Documents</Text>
@@ -215,12 +260,14 @@ export const CreateDriverScreen = ({ route }: any) => {
                 {renderUploadSection("Aadhaar Card", "aadhaar", aadhaarFile, (editingDriver as any)?.aadhaarFile)}
                 {renderUploadSection("Driving License", "license", licenseFile, (editingDriver as any)?.licenseFile)}
 
-                <Button
-                    title={editingDriver ? "Update Driver" : "Create Driver"}
-                    onPress={handleSubmit}
-                    loading={loading}
-                    style={styles.button}
-                />
+                {!viewOnly && (
+                    <Button
+                        title={editingDriver ? "Update Driver" : "Create Driver"}
+                        onPress={handleSubmit}
+                        loading={loading}
+                        style={styles.button}
+                    />
+                )}
 
                 {/* Upload Modal */}
                 <Modal visible={uploadModalVisible} transparent={true} animationType="slide" onRequestClose={() => setUploadModalVisible(false)}>
